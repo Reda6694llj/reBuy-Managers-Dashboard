@@ -1,0 +1,786 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>متابعة موظفي أكتوبر</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: شريط تبويبات ← اختيار اليوم والموظف ← نتيجة اليوم ← مهام الخطة ← مؤشرات اليوم */
+:root{
+  --bg:#f3f5f6; --surface:#fff; --ink:#14232a; --muted:#566871; --line:#d8e0e3; --soft:#eaf0f2;
+  --accent:#0f5c63; --accent-ink:#fff;
+  --good:#1d7a4b; --warn:#a86300; --bad:#b3261e;
+  --good-bg:#e1f3e9; --warn-bg:#fbefd5; --bad-bg:#fbe3e1;
+  --f-body:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1417; --surface:#162025; --ink:#e5eef0; --muted:#97a9b0; --line:#2a383e; --soft:#1d2a30;
+  --accent:#5cc1c9; --accent-ink:#06282b;
+  --good:#52c28a; --warn:#e3a947; --bad:#ff8f86;
+  --good-bg:#15332580; --warn-bg:#3a2d1280; --bad-bg:#3d1c1a80; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1417; --surface:#162025; --ink:#e5eef0; --muted:#97a9b0; --line:#2a383e; --soft:#1d2a30;
+  --accent:#5cc1c9; --accent-ink:#06282b;
+  --good:#52c28a; --warn:#e3a947; --bad:#ff8f86;
+  --good-bg:#15332580; --warn-bg:#3a2d1280; --bad-bg:#3d1c1a80; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 56px}
+.app{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{margin:0;text-wrap:balance} h1{font-size:24px} h2{font-size:18px} h3{font-size:15px}
+.sub{color:var(--muted);font-size:13px}
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;display:inline-block}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:8px 20px;border-bottom:2px solid var(--ink);padding-bottom:12px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tab,.btn,.theme{font:inherit;font-size:14px;cursor:pointer;border-radius:5px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:7px 14px}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.btn.small{padding:3px 10px;font-size:13px}
+.theme{color:var(--muted);font-size:12.5px;padding:4px 10px}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px 16px;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+label.f{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--muted)}
+input[type=date],input[type=month],input[type=number],input[type=text],select,textarea{font:inherit;font-size:14px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:6px 8px;min-width:0}
+textarea{width:100%;min-height:70px;resize:vertical}
+input[type=number]{width:96px;direction:ltr;text-align:left}
+.emps{display:flex;gap:8px;flex-wrap:wrap}
+.emp{display:flex;align-items:center;gap:8px;font:inherit;font-size:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:5px;padding:8px 12px;cursor:pointer;text-align:right}
+.emp small{display:block;color:var(--muted);font-size:12px;line-height:1.2}
+.emp[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--line);flex:none}
+.dot.good{background:var(--good)} .dot.bad{background:var(--bad)} .dot.mute{background:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:2px 10px;border-radius:99px;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.pill.good{color:var(--good);background:var(--good-bg)} .pill.bad{color:var(--bad);background:var(--bad-bg)} .pill.warn{color:var(--warn);background:var(--warn-bg)} .pill.mute{color:var(--muted);background:var(--soft)}
+.result{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.m{display:flex;flex-direction:column;gap:0}
+.m .v{font-size:26px;font-weight:700;line-height:1.25} .m .l{font-size:12.5px;color:var(--muted)}
+.callout{margin-top:12px;border-radius:5px;padding:12px 14px;background:var(--bad-bg);display:flex;flex-direction:column;gap:6px}
+.callout.good{background:var(--good-bg)} .callout.mute{background:var(--soft)}
+.callout b{font-weight:600}
+.task{border:1px solid var(--line);border-radius:6px;background:var(--surface);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.task.s0{border-color:var(--bad)} .task.s5{border-color:var(--warn)} .task.s1{border-color:var(--good)}
+.th{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:space-between}
+.th .t{display:flex;gap:10px;align-items:baseline;min-width:0;flex:1 1 240px}
+.tm{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:5px;overflow:hidden}
+.seg button{font:inherit;font-size:13px;border:0;background:var(--surface);color:var(--muted);padding:6px 12px;cursor:pointer;border-inline-start:1px solid var(--line)}
+.seg button:first-child{border-inline-start:0}
+.seg button.bsel[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.seg button[aria-pressed="true"].b0{background:var(--bad);color:#fff}
+.seg button[aria-pressed="true"].b5{background:var(--warn);color:#fff}
+.seg button[aria-pressed="true"].b1{background:var(--good);color:#fff}
+.tb{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:6px 18px;font-size:13.5px}
+.k{display:block;font-size:12px;color:var(--muted)}
+.tbar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.tbar input[type=text]{flex:1 1 220px}
+.chk{display:flex;gap:6px;align-items:center;font-size:13.5px;cursor:pointer}
+.chk input{width:17px;height:17px;accent-color:var(--accent)}
+.act{font-size:13.5px;background:var(--bad-bg);border-radius:4px;padding:6px 10px}
+.act.p{background:var(--warn-bg)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.kpi{border:1px solid var(--line);border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.kpi .top{display:flex;justify-content:space-between;gap:8px;font-size:13.5px}
+.bar{height:8px;background:var(--soft);border-radius:2px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent)} .bar.good>i{background:var(--good)} .bar.warn>i{background:var(--warn)} .bar.bad>i{background:var(--bad)}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12.5px;color:var(--muted);font-weight:600;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.rep{display:flex;flex-direction:column;gap:16px}
+.rep h2{border-bottom:1px solid var(--line);padding-bottom:4px}
+.rep ul{margin:0;padding-inline-start:20px;display:flex;flex-direction:column;gap:3px;font-size:14px}
+.save{font-size:12.5px;color:var(--muted)}
+.banner{background:var(--warn-bg);color:var(--ink);border-radius:5px;padding:8px 12px;font-size:13.5px}
+[hidden]{display:none!important}
+.thumb{max-width:260px;border-radius:5px;border:1px solid var(--line)}#alBadge::before{display:none}.seg button.pbs[aria-pressed="true"]{background:var(--ink);color:var(--bg)}.seg button.pbs{font:inherit;font-size:13px;border:0;background:var(--surface);color:var(--muted);padding:6px 12px;cursor:pointer}
+.ladder{margin:0;padding-inline-start:20px;font-size:14px;display:flex;flex-direction:column;gap:3px}
+</style>
+
+<div class="app" dir="rtl" lang="ar">
+<header>
+  <div><div class="sub">فرعا أكتوبر والمعادي</div><h1>متابعة الموظفين</h1></div>
+  <div class="row"><span class="save" id="saveState"></span><button class="theme" id="themeBtn" type="button">الوضع الليلي</button></div>
+</header>
+<div class="banner" id="banner" hidden></div>
+<nav class="tabs" role="tablist">
+  <button class="tab" role="tab" data-tab="day" aria-selected="true">التقرير اليومي</button>
+  <button class="tab" role="tab" data-tab="rep" aria-selected="false">تقرير الإدارة</button>
+  <button class="tab" role="tab" data-tab="qm" aria-selected="false">مراجعة المعادي</button>
+  <button class="tab" role="tab" data-tab="qo" aria-selected="false">مراجعة أكتوبر</button>
+  <button class="tab" role="tab" data-tab="al" aria-selected="false">تنبيهات <span id="alBadge" class="pill bad" hidden style="padding:0 7px"></span></button>
+  <button class="tab" role="tab" data-tab="pl" aria-selected="false">المنصات اليومية</button>
+  <button class="tab" role="tab" data-tab="wk" aria-selected="false">التقرير الأسبوعي</button>
+  <button class="tab" role="tab" data-tab="er" aria-selected="false">الأخطاء والتحليل</button>
+  <button class="tab" role="tab" data-tab="set" aria-selected="false">الإعدادات</button>
+</nav>
+
+<main id="vDay" class="rep">
+  <div class="panel"><div class="row">
+    <div class="seg" role="group" aria-label="الفرع"><button type="button" class="bsel" data-b="oct" style="font-size:14px">أكتوبر</button><button type="button" class="bsel" data-b="maadi" style="font-size:14px">المعادي</button></div>
+    <label class="f">التاريخ<input type="date" id="date"></label>
+    <div class="emps" id="emps" style="flex:1"></div>
+  </div></div>
+  <div id="form"></div>
+</main>
+
+<main id="vRep" class="rep" hidden>
+  <div class="panel"><div class="row">
+    <label class="f">الفرع<select id="rBr"><option value="oct">أكتوبر</option><option value="maadi">المعادي</option></select></label>
+    <label class="f">نوع التقرير<select id="rType"><option value="day">يومي</option><option value="month">شهري</option></select></label>
+    <label class="f" id="rDayWrap">اليوم<input type="date" id="rDate"></label>
+    <label class="f" id="rMonthWrap" hidden>الشهر<input type="month" id="rMonth"></label>
+    <span style="flex:1"></span>
+    <button class="btn" id="copyBtn" type="button">نسخ التقرير نصًا</button>
+    <button class="btn primary" id="dlBtn" type="button">تنزيل ملف نصي</button>
+  </div><div class="sub" id="copyMsg" style="margin-top:6px"></div></div>
+  <div class="panel rep" id="report"></div>
+</main>
+
+<main id="vQm" class="rep" hidden></main>
+<main id="vQo" class="rep" hidden></main>
+<main id="vAl" class="rep" hidden></main>
+<main id="vPl" class="rep" hidden></main>
+<main id="vEr" class="rep" hidden></main>
+<main id="vWk" class="rep" hidden></main>
+
+<main id="vSet" class="rep" hidden>
+  <div class="panel"><h2>قواعد الحساب</h2><div class="row" style="margin-top:10px">
+    <label class="f">حد الالتزام الأدنى %<input type="number" id="sThr" min="0" max="100"></label>
+    <label class="f">الخصم عند التقصير (من اليوم)<input type="number" id="sFrac" step="0.25" min="0"></label>
+    <label class="f">عدد أيام الشهر لحساب أجر اليوم<input type="number" id="sDiv" min="1"></label>
+  </div>
+  <div class="sub" style="margin-top:8px">أجر اليوم = المرتب الشهري ÷ عدد الأيام. الخصم = أجر اليوم × الجزء المحدد (نصف يوم حسب اللائحة).</div></div>
+  <div class="panel"><h2>سلّم الإجراءات حسب لائحة الجزاءات</h2>
+    <ol class="ladder" style="margin-top:8px"><li>المرة الأولى: تحذير شفهي من المدير المباشر.</li><li>المرة الثانية: تحذير شفهي آخر.</li><li>المرة الثالثة: خطة تحسين أداء لمدة أسبوع.</li><li>تكرار التقصير: يُرفع للإدارة (فصل أو تنزيل مرتب أو تنزيل درجة وظيفية).</li></ol>
+    <div class="sub" style="margin-top:8px">يُحسب ترتيب التقصير من تقصيرات آخر 90 يومًا المسجلة هنا، مضافًا إليها العدد السابق الذي تدخله لكل موظف.</div></div>
+  <div class="panel"><h2>الموظفون</h2><div class="sub">أكتوبر: إسماعيل وعمرو وأحمد وباسل · المعادي: إبراهيم ويوسف وزينب وريم</div><div class="tw"><table id="sEmp"></table></div></div>
+  <div class="panel"><h2>مستهدفات المؤشرات اليومية</h2><div class="sub">عدّل المستهدف لأي موظف، والتغيير يسري على الحساب فورًا.</div><div class="tw"><table id="sKpi"></table></div></div>
+</main>
+</div>
+
+<script>
+/* ---------- بيانات الخطط ---------- */
+const SALES_T=[
+ {id:"s1",tm:"13:00–13:15",t:"اجتماع بداية اليوم",chk:"هدف اليوم وتوزيع المهام مكتوبان في «الخطة اليومية»، والمخزون المتاح مراجَع.",out:"هدف اليوم واضح والمهام موزعة",act:"تنبيه فوري وإعادة إبلاغه بهدف اليوم وأولوياته قبل أي تواصل."},
+ {id:"s2",tm:"13:15–14:00",t:"الرد على المكالمات الفائتة",chk:"سجل المكالمات الفائتة (الهوت لاين) مقابل سطور «سجل العملاء» بتاريخ اليوم.",out:"الرد على 100% من المكالمات الفائتة",act:"يعيد الاتصال قبل نهاية اليوم، ويُسجَّل التأخير في الملاحظات."},
+ {id:"s3",tm:"14:00–14:30",t:"مركز الرسائل",chk:"صندوق Messenger وMarketplace وواتساب: لا رسائل غير مقروءة.",out:"صفر رسائل بدون رد",act:"يرد فورًا، وتُراجَع غدًا أول ساعة."},
+ {id:"s4",tm:"14:30–15:00",t:"تأكيد مواعيد الفرع",chk:"شيت «مواعيد الفرع»: عمودا «تم التأكيد» و«الجهاز جاهز» لكل موعد اليوم.",out:"تأكيد 100% من مواعيد اليوم",act:"يتواصل مع العملاء ويجهّز الأجهزة قبل الوصول، ويُسجَّل أي عميل جاء بدون تجهيز."},
+ {id:"s5",tm:"15:00–16:00",t:"نشر الإعلانات: الدفعة الأولى",chk:"شيت «متابعة الإعلانات»: إعلانات Marketplace والجروبات بتاريخ اليوم (الهدف 8 و10) بروابط حقيقية.",out:"8 إعلانات Marketplace و10 جروبات",act:"يستكمل النشر قبل الثامنة مساءً، ولو الحظر متوقف يرسل لك لقطة شاشة."},
+ {id:"s6",tm:"16:00–16:15",t:"مراجعة رسائل الإعلانات",chk:"زمن الرد على استفسارات الإعلانات ≤ 15 دقيقة.",out:"زمن الرد ≤ 15 دقيقة",act:"تنبيه، وتدوين التأخر ضمن الملاحظات."},
+ {id:"s7",tm:"16:15–17:30",t:"متابعة قاعدة البيانات",chk:"«سجل العملاء»: عدد المتابعات اليوم (الهدف 20) مع تحديث المرحلة وتاريخ المتابعة.",out:"20 مكالمة متابعة",act:"يبدأ بالمتبقي غدًا قبل أي مهمة أخرى."},
+ {id:"s9",tm:"18:00–19:30",t:"استقبال عملاء الفرع وإغلاق الصفقات",chk:"نتيجة كل موعد (بيع / لم يحضر / مؤجل) وسبب عدم الإغلاق، وفاتورة وضمان لكل جهاز مباع.",out:"إغلاق الزيارات ≥ 80%",act:"جلسة Coaching قصيرة على الصفقات الضائعة، وتوثيق سبب كل صفقة."},
+ {id:"s10",tm:"19:30–20:00",t:"الدفعة الثانية + استمرار الفرع",chk:"5 إعلانات إضافية مسجلة، وتجديد الإعلانات الأقدم.",out:"5 إعلانات إضافية",act:"يُستكمل صباح الغد ضمن الدفعة الأولى."},
+ {id:"s11",tm:"20:00–20:40",t:"تسجيل بيانات كل العملاء",chk:"كل تواصل اليوم له سطر مكتمل: المصدر والجهاز والميزانية والمرحلة والإجراء القادم وتاريخ المتابعة.",out:"تسجيل 100% من التواصلات",act:"يستكمل التسجيل قبل مغادرته، ويُسجَّل النقص كمخالفة جودة بيانات."},
+ {id:"s12",tm:"20:40–21:00",t:"إقفال اليوم وتقرير الأداء",chk:"شيت «مؤشرات الأداء اليومية» مملوء بالفعلي، مع أسباب ضياع الصفقات وقائمة الغد.",out:"تقرير يومي مكتمل",act:"يرسله صباح الغد قبل بدء المهام، ويُسجَّل التأخير."}
+];
+const MAINT_T=[
+ {id:"m1",tm:"13:00–13:15",t:"اجتماع بداية اليوم ومراجعة التذاكر",chk:"قائمة أولويات التذاكر New / In Progress / On Hold والمتأخر منها.",out:"قائمة أولويات التذاكر",act:"يعيد ترتيب الأولويات معك فورًا."},
+ {id:"m2",tm:"13:15–14:00",t:"تشخيص التذاكر الجديدة والتنسيق مع خدمة العملاء",chk:"Odoo: التذاكر الجديدة تحولت In Progress، وفيها تشخيص وتكلفة متوقعة في Log Note وطلب القطعة.",out:"تشخيص ≤ يوم عمل وقطع مطلوبة نفس اليوم",act:"يشخّص قبل نهاية الدوام، وأي تذكرة تتأخر عن يوم عمل تُسجَّل كتأخير TAT."},
+ {id:"m3",tm:"14:00–15:00",t:"الإصلاح: الجلسة الأولى",chk:"Log Note لكل حركة، والإصلاح البسيط خلال 48 ساعة.",out:"إصلاح بسيط ≤ 48 ساعة",act:"تحديد الأجهزة المتأخرة وموعد تسليم جديد يُبلَّغ لخدمة العملاء."},
+ {id:"m4",tm:"15:00–15:45",t:"الفحص قبل البيع للأجهزة الجديدة",chk:"نموذج الفحص موقّع لكل جهاز مع Grade A/B/C وصور العيوب، ضمن 45 دقيقة.",out:"نموذج موقّع لكل جهاز ≤ 45 دقيقة",act:"لا يُعرض الجهاز للبيع حتى يكتمل نموذجه."},
+ {id:"m5",tm:"15:45–16:15",t:"تنسيق قطع الغيار والتوريد",chk:"الطلبات مجمّعة وموعد الوصول مسجل على كل تذكرة.",out:"طلبات مجمّعة وموعد وصول مسجّل",act:"يرسل الطلب للمشتريات خلال ساعة، ويُحدَّث موعد الوصول على التذكرة."},
+ {id:"m6",tm:"16:15–17:00",t:"اختبار ما بعد الإصلاح وإقفال التذاكر",chk:"التذاكر المنتهية Resolved وخدمة العملاء مُبلَّغة فورًا.",out:"إبلاغ خدمة العملاء قبل نهاية الجلسة",act:"يبلّغ خدمة العملاء الآن، وتُراجَع التذاكر المتأخرة معك غدًا."},
+ {id:"m8",tm:"17:30–18:30",t:"استلام أجهزة العملاء واستكمال الإصلاحات",chk:"كل جهاز مربوط بتذكرة وستيكر رقمها.",out:"تذاكر مُنجَزة اليوم",act:"لا جهاز بدون تذكرة: يُربط فورًا ويُسجَّل الاستثناء."},
+ {id:"m9",tm:"18:30–19:15",t:"الجلسة الثانية ومساعدة الاستقبال",chk:"ستيكر رقم التذكرة وورقة Test (خارج الضمان) وإقرار قاطع الباور.",out:"جهاز مربوط بتذكرة وستيكر",act:"يستكمل المستندات قبل التسليم، ويُنبَّه على الأخطاء الشائعة."},
+ {id:"m10",tm:"19:15–20:00",t:"الجلسة الثالثة وتقييم Trade-in",chk:"تقييم الاستبدال وتقدير التكلفة خارج الضمان مسجلان على التذكرة وأُرسلا لخدمة العملاء.",out:"تقييم مسجل على التذكرة",act:"يُسجَّل ويُرسل صباح الغد قبل الواحدة."},
+ {id:"m11",tm:"20:00–20:30",t:"توثيق Log Notes والمرفقات",chk:"لا توجد تذكرة بدون تحديث أكثر من 24 ساعة، والصور والفواتير مرفوعة.",out:"لا تذكرة بدون تحديث > 24 ساعة",act:"يستكمل التوثيق قبل مغادرته."},
+ {id:"m12",tm:"20:30–20:45",t:"جرد قطع الغيار الأساسية",chk:"قائمة النواقص محدثة ومرسلة للمشتريات.",out:"قائمة نواقص محدّثة",act:"يستكمل الجرد غدًا أول الدوام."},
+ {id:"m13",tm:"20:45–21:00",t:"تقرير نهاية اليوم",chk:"وصلك قبل 9:00 م: المنجز والمتأخر والأعطال المتكررة واحتياجات القطع.",out:"تقرير قبل 9:00 م",act:"يرسله فورًا، ويُسجَّل التأخير."}
+];
+const ACC_T=[
+ {id:"a1",tm:"13:00–13:15",t:"حضور اجتماع بداية اليوم",chk:"عرف مواعيد الفرع والأجهزة المطلوبة وملاحظات أمس.",out:"قائمة أولويات اليوم",act:"تنبيه وإبلاغه بالأولويات."},
+ {id:"a2",tm:"13:15–13:45",t:"جرد المعروض وإرسال قائمة المتاح",chk:"وصلت قائمة المتاح لجروب المبيعات قبل 1:45 م ومطابقة لـ Odoo.",out:"قائمة المتاح قبل 1:45 م",act:"يرسلها فورًا، ويُسجَّل التأخير لأن المبيعات تبدأ العمل بها."},
+ {id:"a3",tm:"13:45–14:30",t:"مراجعة مبيعات أمس والمبالغ المستحقة",chk:"فواتير أمس على Odoo مطابقة للخزينة وطرق الدفع بلا فروقات غير مفسّرة.",out:"صفر فروقات غير مفسّرة",act:"يرفع لك الفروقات مكتوبة قبل نهاية اليوم."},
+ {id:"a4",tm:"14:30–15:10",t:"مراجعة تسجيل Shopify",chk:"بيانات العميل وطريقة الدفع مكتملة، والنواقص أُرسلت للبائع في نموذج Audit.",out:"اكتمال بيانات Shopify/Odoo ≥ 90%",act:"يتابع النواقص مع البائعين حتى تُستكمل ويكتب القائمة في تقريره."},
+ {id:"a5",tm:"15:10–15:30",t:"مراجعة طلبات Marketplace",chk:"الموافقة على الأوردرات وتحديث الاستوك والأسعار والفواتير والتغليف.",out:"أوردرات معالجة",act:"يعالجها قبل الشحن التالي."},
+ {id:"a6",tm:"15:30–16:15",t:"استلام الأجهزة الجديدة وتسجيلها",chk:"Odoo: سيريال وموديل وتكلفة، والتحويل للفني للفحص قبل البيع.",out:"جاهز للبيع خلال 48 ساعة",act:"يسجّل فورًا، ولا يُسلَّم جهاز للمبيعات بدون تسجيل."},
+ {id:"a7",tm:"16:15–17:00",t:"الشحن والتحصيل ومراجعة مخزون المعادي",chk:"بوليصة أرامكس نفس اليوم بعد دفع العميل، ومتابعة COD خلال 48 ساعة.",out:"بوليصة في نفس اليوم",act:"يصدرها فورًا، ويُرسل رقمها للمبيعات."},
+ {id:"a9",tm:"17:30–18:00",t:"المخزون الراكد والنواقص والمصروفات",chk:"أجهزة أكثر من 30 يومًا، والطلبات المفقودة أُرسلت للمشتريات، والمصروفات مسجلة.",out:"قائمة نواقص للمشتريات",act:"يكملها غدًا ويرسلها للمشتريات."},
+ {id:"a10",tm:"18:00–19:30",t:"ذروة الفرع: خدمة العملاء الحاضرين",chk:"اسأل المبيعات: هل تأخر تأكيد توافر أو فاتورة أكثر من 10 دقائق؟",out:"زمن خدمة عميل الفرع ≤ 10 دقائق",act:"يُراجَع كل تأخير ويُسجَّل سببه، وتكرره تقصير."},
+ {id:"a11",tm:"19:30–20:00",t:"إرجاع وتسوية ما تحرّك من المعروض",chk:"لا جهاز بمكان غير مسجّل، والجرد محدّث والمبيعات مبلَّغة.",out:"لا جهاز بمكان غير مسجل",act:"يسجّل أماكن الأجهزة فورًا."},
+ {id:"a12",tm:"20:00–20:30",t:"تسوية الخزينة وإغلاق فواتير اليوم",chk:"تسوية يومية موقّعة والنقدي والفيزا والتحويلات مطابقة لـ ManagerIO.",out:"تسوية موقعة و100% فواتير مدخلة",act:"لا ينصرف قبل التسوية، وأي فرق يُكتب لك في تقريره."},
+ {id:"a13",tm:"20:30–20:45",t:"التعلّم الموجّه: Odoo / Excel / English",chk:"تمرين اليوم منجز حسب خطة التدريب.",out:"تمرين منجز يوميًا",act:"يعوّضه في اليوم التالي."},
+ {id:"a14",tm:"20:45–21:00",t:"تقرير نهاية اليوم وتجهيز الغد",chk:"وصلك قبل 9:00 م: الخزينة والمخزون والنواقص ومشاكل Shopify.",out:"تقرير قبل 9:00 م",act:"يرسله فورًا، ويُسجَّل التأخير."}
+];
+const SALES_K=[
+ {key:"missed",l:"المكالمات الفائتة التي تم الرد عليها %",t:100},
+ {key:"msgs",l:"الرسائل التي تم الرد عليها %",t:100},
+ {key:"mp",l:"إعلانات Marketplace",t:1},
+ {key:"grp",l:"منشورات الجروبات",t:20},
+ {key:"calls",l:"مكالمات متابعة قاعدة البيانات",t:20},
+ {key:"newc",l:"عملاء جدد مسجلون",t:15},
+ {key:"appt",l:"مواعيد فرع مؤكدة",t:6},
+ {key:"visit",l:"زيارات فعلية للفرع",t:5},
+ {key:"sold",l:"أجهزة مباعة",t:3}];
+const MAINT_K=[
+ {key:"diag",l:"تذاكر شُخِّصت خلال يوم عمل %",t:90},
+ {key:"fix48",l:"إصلاح بسيط خلال 48 ساعة %",t:90},
+ {key:"audit",l:"اكتمال التذاكر (Audit) %",t:95},
+ {key:"parts",l:"قطع طُلبت وقت التشخيص %",t:100},
+ {key:"log",l:"Log Notes خلال 24 ساعة %",t:100},
+ {key:"pre",l:"فحص قبل البيع ضمن 45 دقيقة %",t:100}];
+const ACC_K=[
+ {key:"shop",l:"اكتمال بيانات Shopify/Odoo %",t:90},
+ {key:"cash",l:"مطابقة الخزينة اليومية %",t:100},
+ {key:"avail",l:"قائمة المتاح قبل 1:45 (1 نعم / 0 لا)",t:1},
+ {key:"inv",l:"فواتير نفس اليوم %",t:100},
+ {key:"serve",l:"زمن خدمة عميل الفرع (دقيقة)",t:10,low:true},
+ {key:"awb",l:"بوالص الشحن وCOD %",t:100},
+ {key:"moved",l:"تسجيل أجهزة العرض المنقولة %",t:100}];
+
+const ZAI_T=[
+ {id:"z1",tm:"10:00–10:30",t:"مراجعة رسائل الليل وتسليمات الـ AI",chk:"لا محادثات ليلية بدون رد في الـ Inbox.",out:"صفر محادثات ليلية بدون رد",act:"يرد فورًا بترتيب الأسخن ثم الأقدم."},
+ {id:"z2",tm:"10:30–11:30",t:"تأهيل عملاء الليل والمتابعات المستحقة",chk:"سجل العملاء: أسئلة التأهيل الأربعة مكتملة وحالة «مؤهل، جاهز للتحويل» لمن استوفاها.",out:"مؤهلون جاهزون لدفعة 1 م",act:"يستكمل التأهيل قبل دفعة 1 م."},
+ {id:"z3",tm:"11:30–12:00",t:"نشر الإعلانات: الدفعة الأولى",chk:"سجل الإعلانات: منشورات الصباح (الهدف 40 جروب) مسجلة.",out:"إعلانات الدفعة الأولى مسجلة",act:"يستكمل النشر قبل الظهر، ولا يتكرر نفس الإعلان في نفس الجروب قبل 48 ساعة."},
+ {id:"z4",tm:"12:00–12:10",t:"تأكيد زيارات الفرع المباشرة",chk:"شيت زيارات الفرع المباشرة: عمود «تم التأكيد» للزيارات اليوم والفرع مُبلَّغ بالجهاز.",out:"زيارات اليوم مؤكدة",act:"يؤكد فورًا ويبلغ الفرع."},
+ {id:"z5",tm:"12:10–12:50",t:"رسائل وتأهيل وتسجيل فوري",chk:"كل محادثة لها سطر في السجل بلا تسجيل مجمّع آخر اليوم.",out:"كل محادثة لها سطر في السجل",act:"يسجّل المتأخر فورًا، ويُسجَّل أي تسجيل مجمّع."},
+ {id:"z6",tm:"12:50–13:00",t:"تجهيز دفعة التحويل الأولى",chk:"ملخص تسليم كامل لكل عميل حسب النموذج في شيت التأهيل والتحويل.",out:"ملخصات تسليم جاهزة",act:"يكمل الملخصات قبل 1 م لأن المبيعات تبدأ بها."},
+ {id:"z7",tm:"13:00–13:20",t:"تسليم دفعة الصباح لفريق المبيعات",chk:"تاريخ التحويل واسم المندوب والحالة «تم التحويل للمبيعات» لكل محوَّل.",out:"صفر مؤهلين في الانتظار",act:"يسلّم فورًا، ويُسجَّل تأخير التسليم."},
+ {id:"z8",tm:"13:20–14:15",t:"رسائل وتأهيل وتحويل فوري",chk:"كل مؤهل تحوّل خلال 15 دقيقة من اكتمال تأهيله.",out:"كل مؤهل يتحول خلال 15 دقيقة",act:"تنبيه فوري، وتوثيق التأخير في سجل العميل."},
+ {id:"z9",tm:"14:15–15:00",t:"متابعة الـ Warm",chk:"عملاء Warm آخر 3–7 أيام: السؤال الناقص استُكمل وعدد من تحوّلوا لمؤهلين.",out:"Warm تحولوا إلى مؤهلين",act:"يتابع المتبقي غدًا أول الشيفت."},
+ {id:"z10",tm:"15:00–15:30",t:"صيانة الإعلانات",chk:"لا يوجد إعلان لجهاز مباع، والأسعار والصور محدّثة.",out:"لا إعلان لجهاز مباع",act:"يحذف المباع فورًا."},
+ {id:"z11",tm:"15:30–16:00",t:"استلام نتيجة المبيعات على عملاء الصباح",chk:"عمود «نتيجة المبيعات» محدَّث وأي عميل رجع غير مؤهل عاد للمتابعة.",out:"عمود نتيجة المبيعات محدَّث",act:"يسأل المبيعات ويحدّث الآن."},
+ {id:"z13",tm:"16:00–16:15",t:"تجهيز قائمة التسليم",chk:"المحادثات المفتوحة والعملاء في منتصف التأهيل والمتابعات المتبقية مكتوبة.",out:"قائمة تسليم مكتوبة",act:"يكتبها فورًا قبل بدء ريم."},
+ {id:"z14",tm:"16:15–16:40",t:"التسليم بين الشيفتين",chk:"كل عميل مفتوح محوَّل لريم في عمود المسؤول.",out:"صفر عملاء بدون مسؤول",act:"يُراجع معهما التسليم ويُحدَّد مسؤول لكل عميل."},
+ {id:"z15",tm:"16:40–17:00",t:"إغلاق شيفت زينب",chk:"كل عميل له حالة وتاريخ متابعة وأرقامها في مؤشرات الأداء.",out:"سجل زينب مكتمل 100%",act:"تستكمل قبل مغادرتها."}
+];
+const REEM_T=[
+ {id:"r12",tm:"16:00–16:15",t:"بداية الشيفت: مراجعة الـ Inbox",chk:"قرأت ملاحظات زينب ورُدّ على أي رسالة جديدة.",out:"مُلمّة بالوضع الحالي",act:"تراجع مع زينب أو معك فورًا."},
+ {id:"r14",tm:"16:15–16:40",t:"التسليم بين الشيفتين",chk:"كل عميل مفتوح محوَّل إليها في عمود المسؤول.",out:"صفر عملاء بدون مسؤول",act:"يُحدَّد المسؤول لكل عميل فورًا."},
+ {id:"r16",tm:"16:40–17:00",t:"الرد على الرسائل أثناء إغلاق زينب",chk:"لا رسائل معلقة في الـ Inbox.",out:"صفر رسائل معلقة",act:"ترد فورًا."},
+ {id:"r17",tm:"17:00–18:15",t:"رسائل وتأهيل وتحويل فوري",chk:"كل مؤهل تحوّل خلال 15 دقيقة، واستُكمل من كانوا في منتصف التأهيل.",out:"كل مؤهل يتحول خلال 15 دقيقة",act:"تنبيه وتوثيق التأخير."},
+ {id:"r18",tm:"18:15–19:00",t:"نشر الإعلانات: الدفعة الثانية",chk:"سجل الإعلانات: 40 منشورًا في جروبات مختلفة عن الصباح بصياغة مختلفة.",out:"40 منشورًا مسجلًا",act:"تستكمل قبل ذروة الرسائل."},
+ {id:"r19",tm:"19:00–20:30",t:"ذروة الرسائل والتأهيل والتحويل",chk:"عدد التحويلات مقارنة بباقي اليوم، والأولوية لمن قارب التأهيل.",out:"أعلى عدد تحويلات في اليوم",act:"جلسة Coaching على التأخير في الرد."},
+ {id:"r20",tm:"20:30–20:50",t:"آخر تحويل ونتيجة المبيعات المسائية",chk:"لا مؤهل في الانتظار قبل 9 م وعمود نتيجة المبيعات محدّث.",out:"صفر مؤهلين في الانتظار قبل 9 م",act:"تحوّل فورًا قبل انتهاء شيفت المبيعات."},
+ {id:"r21",tm:"20:50–21:00",t:"تأكيد زيارات الغد المباشرة",chk:"شيت الزيارات المباشرة: زيارات الغد مؤكدة.",out:"زيارات الغد مؤكدة",act:"تؤكد وتبلغ الفرع."},
+ {id:"r22",tm:"21:00–21:45",t:"نشر الإعلانات: الدفعة الثالثة",chk:"سجل الإعلانات: 3–5 منشورات مسجلة.",out:"3–5 منشورات مسجلة",act:"تنشر في اليوم التالي أول الشيفت."},
+ {id:"r23",tm:"21:45–23:15",t:"رسائل وتأهيل بعد شيفت المبيعات",chk:"المؤهل الليلي مسجّل «جاهز للتحويل» والعميل مبلَّغ بموعد اتصال المبيعات.",out:"كل مؤهل ليلي له وقت اتصال",act:"تسجّل وتبلغ العملاء."},
+ {id:"r24",tm:"23:15–23:45",t:"تنظيف السجل",chk:"كل عميل تواصلت معه له درجة اهتمام وحالة وتاريخ متابعة.",out:"لا عميل بدون حالة",act:"تستكمل قبل الإغلاق."},
+ {id:"r25",tm:"23:45–00:00",t:"تقرير نهاية اليوم والتسليم لزينب",chk:"وصلتك لقطة مؤشرات الأداء وملاحظات التسليم.",out:"تقرير يومي مُرسل",act:"ترسله فورًا ويُسجَّل التأخير."}
+];
+const CS_T=[
+ {id:"c1",tm:"13:00–13:20",t:"فرز الوارد وبداية اليوم",chk:"سجل التذاكر: كل حالة منذ أمس مصنفة P1–P4 ولها رد أول ضمن SLA.",out:"الرد الأول ضمن SLA",act:"يرد ويصنّف فورًا، وأي P1 يوقف ما سواه."},
+ {id:"c2",tm:"13:20–13:45",t:"مراجعة تذاكر الصيانة المفتوحة (1)",chk:"كل تذكرة عند الصيانة: الحالة والموعد والقطع الناقصة، والعميل محدَّث.",out:"لا تذكرة بدون تحديث للعميل > 24 ساعة",act:"يحدّث العملاء الآن ويكتب الحالة في السجل."},
+ {id:"c3",tm:"13:45–14:30",t:"رسائل الترحيب لعملاء أمس",chk:"شيت الترحيب: كل عملاء أمس أُرسل لهم قبل 2:30 م وحُجزت جلسة ماك لمن يحتاج.",out:"كل الرسائل قبل 2:30 م",act:"يرسلها فورًا ويُسجَّل التأخير."},
+ {id:"c4",tm:"14:30–15:45",t:"نافذة الشكاوى والتنسيق (1)",chk:"الشكاوى الجديدة لها تذكرة وتحويل للصيانة وموعد زيارة أو اجتماع.",out:"تذاكر محوَّلة بموعد",act:"يفتح التذاكر ويحدد الموعد قبل نهاية اليوم."},
+ {id:"c5",tm:"15:45–16:00",t:"تأكيد مواعيد الفرع والاجتماعات",chk:"كل مواعيد الغد مؤكدة مع العميل والفرع/الصيانة.",out:"صفر مواعيد بدون تأكيد",act:"يؤكد فورًا (يرتبط بنسبة الحضور)."},
+ {id:"c6",tm:"16:00–17:00",t:"جلسة تعليم ماك للعملاء الجدد (1)",chk:"شيت الجلسات: الجلسة مُنفَّذة وتقييمها مسجل، ضمن 3 أيام من الشراء.",out:"جلسة منفذة وتقييم مسجل",act:"يحجز الجلسة التالية خلال 3 أيام من الشراء."},
+ {id:"c7",tm:"17:30–17:45",t:"متابعة الصيانة (2)",chk:"أجهزة جاهزة للتسليم أُبلغ أصحابها فورًا.",out:"إبلاغ كل أصحاب الأجهزة الجاهزة",act:"يبلّغ الآن."},
+ {id:"c8",tm:"17:45–19:00",t:"متابعة العملاء القدامى للتحديث (Upgrade)",chk:"شيت «متابعة التحديث»: عدد المكالمات اليوم (الهدف 15) والنتيجة والتحويل للمبيعات.",out:"15 مكالمة تحديث يوميًا",act:"يعوّضها غدًا قبل أي مهمة أقل أولوية. الشيت فارغ حاليًا."},
+ {id:"c9",tm:"19:00–20:00",t:"نافذة الشكاوى (2) وجلسة ماك (2)",chk:"صفر رسائل بدون رد والحالات المفتوحة متابَعة.",out:"صفر رسائل بدون رد",act:"يرد فورًا ويراجع المفتوح."},
+ {id:"c10",tm:"20:00–20:30",t:"إغلاق الحالات وقياس الرضا",chk:"كل تذكرة محلولة اليوم أُغلقت بتقييم رضا 1–5.",out:"تقييم لكل تذكرة مغلقة",act:"يتصل بالعملاء ويغلق قبل الانصراف."},
+ {id:"c11",tm:"20:30–20:45",t:"تدريب المبيعات / تحضير المحتوى",chk:"جلسة تدريب منفذة أو الأسئلة الشائعة والقوالب محدّثة.",out:"محتوى محدّث أو جلسة منفذة",act:"تُجدول في الأسبوع."},
+ {id:"c12",tm:"20:45–21:00",t:"تقرير نهاية اليوم والتسليم",chk:"وصلك قبل 9 م مع ملخص الأداء وأي حالة عاجلة سُلّمت للموديريتور المسائية.",out:"تقرير مرسل وصفر مهام متأخرة بلا مالك",act:"يرسله فورًا ويُسجَّل التأخير."}
+];
+const CS_K=[
+ {key:"sla",l:"الالتزام بـ SLA الرد الأول %",t:90},
+ {key:"upd",l:"تذاكر محدّثة خلال 24 ساعة %",t:100},
+ {key:"wel",l:"رسائل الترحيب في موعدها %",t:100},
+ {key:"mac",l:"جلسات ماك خلال 3 أيام %",t:90},
+ {key:"up",l:"مكالمات متابعة التحديث",t:15},
+ {key:"csat",l:"رضا العملاء (من 5)",t:4.5}];
+const MOD_K=[
+ {key:"cont",l:"عملاء تم التواصل معهم وتسجيلهم",t:40},
+ {key:"hot",l:"عملاء مؤهلون (Hot) جدد",t:12},
+ {key:"ads",l:"إعلانات منشورة",t:40},
+ {key:"msg",l:"رسائل واردة من الإعلانات",t:30},
+ {key:"conv",l:"نسبة التحويل %",t:30},
+ {key:"qual",l:"جودة التحويل (مقبول من المبيعات) %",t:90},
+ {key:"sold",l:"مبيعات من المحوَّلين اليوم",t:3}];
+const EMP=[
+ {id:"ismail",br:"oct",n:"إسماعيل",role:"مسؤول الصيانة",tasks:MAINT_T,kpis:MAINT_K},
+ {id:"amr",br:"oct",n:"عمرو محمود",role:"الحسابات والمخزن",tasks:ACC_T,kpis:ACC_K},
+ {id:"adel",br:"oct",n:"أحمد عادل",role:"مبيعات",tasks:SALES_T,kpis:SALES_K},
+ {id:"bassel",br:"oct",n:"باسل",role:"مبيعات",tasks:SALES_T,kpis:SALES_K},
+ {id:"ibrahim",br:"maadi",n:"إبراهيم",role:"مبيعات",tasks:SALES_T,kpis:SALES_K},
+ {id:"yousef",br:"maadi",n:"يوسف حسن",role:"خدمة العملاء",tasks:CS_T,kpis:CS_K},
+ {id:"zainab",br:"maadi",n:"زينب",role:"موديريتور (صباحي)",tasks:ZAI_T,kpis:MOD_K},
+ {id:"reem",br:"maadi",n:"ريم",role:"موديريتور (مسائي)",tasks:REEM_T,kpis:MOD_K}];
+const BI={oct:{n:"أكتوبر",m:"محمود سيد"},maadi:{n:"المعادي",m:"محمد رضا"}};
+const inBr=b=>EMP.filter(e=>e.br===b);
+const E=Object.fromEntries(EMP.map(e=>[e.id,e]));
+const LADDER=["تحذير شفهي أول من المدير المباشر","تحذير شفهي ثانٍ من المدير المباشر","خطة تحسين أداء لمدة أسبوع بمتابعة يومية","تكرار التقصير: يُرفع للإدارة لاتخاذ القرار (فصل أو تنزيل مرتب أو تنزيل درجة وظيفية)"];
+
+/* ---------- الحالة والتخزين ---------- */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const f=(n,d=0)=>Number(n).toLocaleString("en-US",{maximumFractionDigits:d});
+const P=x=>Math.round(x*100)+"%";
+const DEF={thr:70,frac:0.5,div:30,emps:{},targets:{}};
+let S={settings:structuredClone(DEF),days:{},reviews:{},plats:{}}, db=null, cur=null, sel={date:null,emp:"ismail",br:"oct"}, saveT=null, dirty=false;
+const lsGet=()=>{try{return JSON.parse(localStorage.getItem("rb_store")||"null")}catch(e){return null}};
+const lsPut=()=>{try{localStorage.setItem("rb_store",JSON.stringify(S))}catch(e){}};
+const todayStr=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Africa/Cairo"}).format(new Date());
+const dkey=(d,e)=>d+"_"+e;
+const setSave=t=>{$("#saveState").textContent=t};
+
+async function persistDay(doc){
+  doc=JSON.parse(JSON.stringify(doc));
+  const k=dkey(doc.date,doc.emp);
+  S.days[k]=doc;
+  if(db){try{await db.doc("days/"+k).set(doc);setSave("تم الحفظ")}catch(e){setSave("تعذّر الحفظ: "+(e.code||""))}}
+  else{lsPut();setSave("حُفظ على هذا المتصفح")}
+}
+async function persistSettings(){
+  if(db){try{await db.doc("settings/main").set(JSON.parse(JSON.stringify(S.settings)));setSave("تم الحفظ")}catch(e){setSave("تعذّر الحفظ")}}
+  else{lsPut();setSave("حُفظ على هذا المتصفح")}
+}
+function queueSave(){dirty=true;setSave("جارٍ الحفظ…");clearTimeout(saveT);saveT=setTimeout(flush,600)}
+async function flush(){clearTimeout(saveT);if(dirty&&cur){dirty=false;cur.ts=Date.now();await persistDay(structuredClone(cur))}}
+
+/* ---------- الحساب ---------- */
+const cfg=()=>S.settings;
+const target=(e,k)=>{const o=cfg().targets?.[e]?.[k.key];return (o!==undefined&&o!==""&&o!==null)?+o:k.t};
+function calc(doc){
+  const e=E[doc.emp],T=e.tasks;
+  let sum=0,rev=0,unset=0;
+  T.forEach(t=>{const x=doc.tasks?.[t.id];if(!x||x.s===undefined)unset++;sum+=(x&&x.s)||0;if(x&&x.rev)rev++});
+  const taskPct=sum/T.length;
+  const ks=[];
+  e.kpis.forEach(k=>{const v=doc.kpi?.[k.key];if(v===undefined||v===""||v===null||isNaN(+v))return;
+    const tg=target(doc.emp,k);const a=k.low?(+v<=0?1:tg/+v):(tg?+v/tg:0);ks.push({k,v:+v,tg,a})});
+  const outPct=ks.length?ks.reduce((s,x)=>s+Math.min(1,x.a),0)/ks.length:null;
+  const overall=outPct===null?taskPct:(taskPct+outPct)/2;
+  const status=doc.absent?"absent":(overall*100<cfg().thr?"short":"ok");
+  return{taskPct,outPct,overall,status,ks,rev,unset,n:T.length};
+}
+const addDays=(d,n)=>{const t=new Date(d+"T00:00:00Z");t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10)};
+function shortIndex(emp,date){
+  let c=+(cfg().emps?.[emp]?.prior||0);const from=addDays(date,-90);
+  Object.values(S.days).forEach(d=>{if(d.emp===emp&&d.date>from&&d.date<=date&&calc(d).status==="short")c++});
+  return c;
+}
+function deduction(emp){
+  const sal=+(cfg().emps?.[emp]?.salary||0);const day=sal/(+cfg().div||30);
+  return{sal,amount:sal?day*(+cfg().frac):0,frac:+cfg().frac};
+}
+const actionFor=i=>LADDER[Math.min(i,4)-1];
+const fmtDate=d=>new Date(d+"T12:00:00Z").toLocaleDateString("ar-EG-u-nu-latn",{weekday:"long",day:"numeric",month:"long",year:"numeric",timeZone:"UTC"});
+const money=n=>f(n,0)+" ج.م";
+
+/* ---------- اليوم ---------- */
+function blankDoc(date,emp){return{date,emp,absent:false,tasks:{},kpi:{},notes:"",acted:false}}
+function loadCur(){cur=structuredClone(S.days[dkey(sel.date,sel.emp)]||blankDoc(sel.date,sel.emp));dirty=false}
+function statusOf(date,emp){const d=S.days[dkey(date,emp)];return d?calc(d).status:null}
+function renderEmps(){
+  document.querySelectorAll(".bsel").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.b===sel.br)));
+  $("#emps").innerHTML=inBr(sel.br).map(e=>{const st=statusOf(sel.date,e.id);const cls=st==="ok"?"good":st==="short"?"bad":st==="absent"?"mute":"";
+    return `<button class="emp" type="button" data-e="${e.id}" aria-pressed="${e.id===sel.emp}"><span class="dot ${cls}"></span><span>${e.n}<small>${e.role}</small></span></button>`}).join("");
+}
+function renderForm(){
+  const e=E[sel.emp];
+  const tasks=e.tasks.map(t=>{const x=cur.tasks[t.id]||{};const s=x.s;
+    const cl=s===0?"s0":s===0.5?"s5":s===1?"s1":"";
+    return `<div class="task ${cl}" data-t="${t.id}">
+      <div class="th"><div class="t"><span class="tm num">${t.tm}</span><b>${t.t}</b></div>
+        <div class="seg" role="group" aria-label="حالة التنفيذ">
+          <button type="button" class="b0" data-s="0" aria-pressed="${s===0}">لم يُنفَّذ</button>
+          <button type="button" class="b5" data-s="0.5" aria-pressed="${s===0.5}">جزئي</button>
+          <button type="button" class="b1" data-s="1" aria-pressed="${s===1}">نُفِّذ</button></div></div>
+      <div class="tb"><div><span class="k">أراجع على</span>${t.chk}</div><div><span class="k">المخرج المطلوب</span>${t.out}</div></div>
+      <div class="act ${s===0.5?"p":""}" ${s===0||s===0.5?"":"hidden"}><b>الإجراء:</b> ${t.act}</div>
+      <div class="tbar"><label class="chk"><input type="checkbox" data-rev ${x.rev?"checked":""}> راجعت وتأكدت</label>
+        <input type="text" data-note placeholder="ملاحظتك على هذه المهمة" value="${esc(x.note||"")}"></div></div>`}).join("");
+  const kp=e.kpis.map(k=>{const v=cur.kpi[k.key];return `<div class="kpi" data-k="${k.key}"><div class="top"><span>${k.l}</span><span class="sub">المستهدف <span class="num">${f(target(sel.emp,k),1)}</span></span></div>
+    <div class="row" style="gap:10px"><input type="number" step="any" inputmode="decimal" data-kpi value="${v??""}" aria-label="${esc(k.l)}"><span class="pill mute kp" data-kp>—</span></div><div class="bar"><i style="width:0"></i></div></div>`}).join("");
+  $("#form").innerHTML=`
+   <div class="panel"><div class="row" style="justify-content:space-between"><div><h2>${e.n} <span class="sub">· ${e.role}</span></h2><div class="sub">${fmtDate(sel.date)}</div></div>
+     <label class="chk"><input type="checkbox" id="absent" ${cur.absent?"checked":""}> غائب أو إجازة (لا يُحسب)</label></div>
+     <div id="result" style="margin-top:12px"></div></div>
+   <div class="panel"><div class="row" style="justify-content:space-between"><h2>مهام الخطة اليومية</h2><button class="btn small" type="button" id="allDone">تعليم الكل «نُفِّذ»</button></div>
+     <div class="sub" style="margin:4px 0 10px">«جزئي» يُحسب نصف مهمة. الاستراحة غير محسوبة.</div><div class="rep" id="tasks">${tasks}</div></div>
+   <div class="panel"><h2>مؤشرات اليوم الفعلية</h2><div class="sub" style="margin:4px 0 10px">أدخل الفعلي. الالتزام الكلي = متوسط نسبة الخطة ونسبة تحقيق المؤشرات.</div><div class="kpis">${kp}</div></div>
+   <div class="panel"><h2>ملاحظات المدير</h2><textarea id="notes" placeholder="ما لاحظته اليوم، وما اتفقت عليه مع الموظف">${esc(cur.notes||"")}</textarea></div>`;
+  refreshResult();
+}
+function refreshResult(){
+  if(!cur)return;
+  const c=calc(cur),e=E[sel.emp];
+  // مؤشرات
+  $$("#form .kpi").forEach(el=>{const k=e.kpis.find(x=>x.key===el.dataset.k);const r=c.ks.find(x=>x.k.key===k.key);
+    const p=el.querySelector("[data-kp]"),b=el.querySelector(".bar"),i=b.firstElementChild;
+    if(r){const a=Math.round(r.a*100);p.textContent=a+"%";p.className="pill kp "+(r.a>=1?"good":r.a>=.7?"warn":"bad");b.className="bar "+(r.a>=1?"good":r.a>=.7?"warn":"bad");i.style.width=Math.min(100,a)+"%"}
+    else{p.textContent="—";p.className="pill mute kp";b.className="bar";i.style.width="0"}});
+  const idx=c.status==="short"?shortIndex(sel.emp,sel.date):0;
+  const ded=deduction(sel.emp);
+  const stPill=c.status==="absent"?`<span class="pill mute">غائب / إجازة</span>`:c.status==="short"?`<span class="pill bad">تقصير</span>`:`<span class="pill good">ملتزم</span>`;
+  let call="";
+  if(c.status==="short"){
+    call=`<div class="callout"><b>تقصير رقم ${idx} خلال 90 يومًا (يشمل العدد السابق)</b>
+      <div><b>الإجراء المطلوب:</b> ${actionFor(idx)}</div>
+      <div><b>الخصم:</b> ${ded.amount?`${ded.frac===0.5?"نصف يوم":f(ded.frac,2)+" يوم"} = <span class="num">${money(ded.amount)}</span>`:`${ded.frac===0.5?"نصف يوم":f(ded.frac,2)+" يوم"} (أدخل مرتب الموظف في الإعدادات لحساب المبلغ)`}</div>
+      <label class="chk"><input type="checkbox" id="acted" ${cur.acted?"checked":""}> تم تنفيذ الإجراء مع الموظف</label></div>`;
+  }else if(c.status==="ok"){
+    call=`<div class="callout good"><b>لا إجراء مطلوب.</b> الالتزام فوق حد ${cfg().thr}%.</div>`;
+  }else call=`<div class="callout mute">اليوم غير محسوب على الموظف.</div>`;
+  const warn=[];
+  if(c.status!=="absent"){if(c.unset)warn.push(`${c.unset} مهمة بلا تقييم تُحسب «لم تُنفَّذ»`);
+    const unrev=cur.tasks&&e.tasks.filter(t=>cur.tasks[t.id]?.s===1&&!cur.tasks[t.id]?.rev).length;if(unrev)warn.push(`${unrev} مهمة منفّذة لم تراجعها بعد`);}
+  $("#result").innerHTML=`<div class="result">
+    <div class="m"><span class="v num">${P(c.taskPct)}</span><span class="l">إنجاز الخطة</span></div>
+    <div class="m"><span class="v num">${c.outPct===null?"—":P(c.outPct)}</span><span class="l">تحقيق المؤشرات</span></div>
+    <div class="m"><span class="v num">${P(c.overall)}</span><span class="l">الالتزام الكلي</span></div>
+    <div class="m"><span class="v">${stPill}</span><span class="l">الحد الأدنى <span class="num">${cfg().thr}%</span></span></div>
+    <div class="m"><span class="v num">${c.rev}/${c.n}</span><span class="l">مهام راجعتها</span></div></div>${warn.length?`<div class="sub" style="margin-top:8px">${warn.join(" · ")}</div>`:""}${call}`;
+  renderEmps();
+}
+function onDay(){
+  const form=$("#form");
+  form.addEventListener("click",ev=>{
+    const b=ev.target.closest("[data-s]");
+    if(b){const id=b.closest(".task").dataset.t;const s=+b.dataset.s;const x=cur.tasks[id]=cur.tasks[id]||{};x.s=x.s===s?undefined:s;
+      const tk=b.closest(".task");tk.className="task "+(x.s===0?"s0":x.s===0.5?"s5":x.s===1?"s1":"");
+      tk.querySelectorAll("[data-s]").forEach(z=>z.setAttribute("aria-pressed",String(x.s===+z.dataset.s)));
+      const a=tk.querySelector(".act");a.hidden=!(x.s===0||x.s===0.5);a.className="act "+(x.s===0.5?"p":"");
+      refreshResult();queueSave();return}
+    if(ev.target.id==="allDone"){E[sel.emp].tasks.forEach(t=>{cur.tasks[t.id]=Object.assign(cur.tasks[t.id]||{},{s:1})});renderForm();queueSave()}
+  });
+  form.addEventListener("input",ev=>{
+    const t=ev.target;
+    if(t.matches("[data-note]")){const id=t.closest(".task").dataset.t;(cur.tasks[id]=cur.tasks[id]||{}).note=t.value;queueSave()}
+    else if(t.matches("[data-kpi]")){const k=t.closest(".kpi").dataset.k;if(t.value==="")delete cur.kpi[k];else cur.kpi[k]=+t.value;refreshResult();queueSave()}
+    else if(t.id==="notes"){cur.notes=t.value;queueSave()}
+  });
+  form.addEventListener("change",ev=>{
+    const t=ev.target;
+    if(t.matches("[data-rev]")){const id=t.closest(".task").dataset.t;(cur.tasks[id]=cur.tasks[id]||{}).rev=t.checked;refreshResult();queueSave()}
+    else if(t.id==="absent"){cur.absent=t.checked;refreshResult();queueSave()}
+    else if(t.id==="acted"){cur.acted=t.checked;queueSave()}
+  });
+  document.querySelectorAll(".bsel").forEach(b=>b.addEventListener("click",async()=>{await flush();sel.br=b.dataset.b;sel.emp=inBr(sel.br)[0].id;loadCur();renderForm()}));
+  $("#emps").addEventListener("click",async ev=>{const b=ev.target.closest("[data-e]");if(!b)return;await flush();sel.emp=b.dataset.e;loadCur();renderForm()});
+  $("#date").addEventListener("change",async ev=>{if(!ev.target.value)return;await flush();sel.date=ev.target.value;loadCur();renderForm()});
+}
+
+/* ---------- تقرير الإدارة ---------- */
+function repModel(){
+  const type=$("#rType").value,br=$("#rBr").value;
+  if(type==="day"){
+    const date=$("#rDate").value;
+    return{type,br,title:"التقرير اليومي",period:fmtDate(date),rows:inBr(br).map(e=>{const d=S.days[dkey(date,e.id)];
+      if(!d)return{e,none:true};const c=calc(d);const idx=c.status==="short"?shortIndex(e.id,date):0;
+      return{e,d,c,idx,ded:c.status==="short"?deduction(e.id):null,date}})};
+  }
+  const m=$("#rMonth").value;
+  return{type,br,title:"التقرير الشهري",period:new Date(m+"-15T12:00:00Z").toLocaleDateString("ar-EG-u-nu-latn",{month:"long",year:"numeric",timeZone:"UTC"}),rows:inBr(br).map(e=>{
+    const ds=Object.values(S.days).filter(d=>d.emp===e.id&&d.date.startsWith(m)).sort((a,b)=>a.date<b.date?-1:1);
+    const cs=ds.map(d=>({d,c:calc(d)}));const live=cs.filter(x=>x.c.status!=="absent");
+    const shorts=live.filter(x=>x.c.status==="short");
+    const avg=live.length?live.reduce((s,x)=>s+x.c.overall,0)/live.length:null;
+    const dd=deduction(e.id);
+    const lastIdx=shorts.length?shortIndex(e.id,shorts[shorts.length-1].d.date):0;
+    return{e,days:cs.length,live:live.length,absent:cs.length-live.length,shorts,avg,idx:lastIdx,dedAmount:dd.amount*shorts.length,dedDays:dd.frac*shorts.length,noSal:!dd.sal}})};
+}
+const stText={ok:"ملتزم",short:"تقصير",absent:"غائب / إجازة"};
+function repHTML(M){
+  let h=`<div><h1 style="font-size:22px">تقرير متابعة أداء الموظفين — فرع ${BI[M.br].n}</h1><div class="sub">${M.title} · ${M.period} · المدير: ${BI[M.br].m} · موجّه للإدارة</div></div>`;
+  if(M.type==="day"){
+    const rec=M.rows.filter(r=>!r.none),sh=rec.filter(r=>r.c.status==="short"),ok=rec.filter(r=>r.c.status==="ok"),ab=rec.filter(r=>r.c.status==="absent");
+    const live=rec.filter(r=>r.c.status!=="absent");const avg=live.length?live.reduce((s,r)=>s+r.c.overall,0)/live.length:null;
+    const tot=sh.reduce((s,r)=>s+r.ded.amount,0);
+    h+=`<div><h2>1. الملخص</h2><ul><li>موظفون سُجِّل تقريرهم: <b class="num">${rec.length}</b> من ${M.rows.length}${M.rows.some(r=>r.none)?` (لم يُسجَّل: ${M.rows.filter(r=>r.none).map(r=>r.e.n).join("، ")})`:""}.</li>
+      <li>ملتزمون: <b class="num">${ok.length}</b> · تقصير: <b class="num">${sh.length}</b> · غياب/إجازة: <b class="num">${ab.length}</b>.</li>
+      ${avg!==null?`<li>متوسط الالتزام: <b class="num">${P(avg)}</b> (الحد الأدنى ${cfg().thr}%).</li>`:""}
+      ${sh.length?`<li>إجمالي الخصم المقترح اليوم: <b class="num">${tot?money(tot):"—"}</b>${tot?"":" (المرتبات غير مُدخلة)"}.</li>`:""}</ul></div>
+      <div><h2>2. الالتزام لكل موظف</h2><div class="tw"><table><tr><th>الموظف</th><th>إنجاز الخطة</th><th>المؤشرات</th><th>الالتزام الكلي</th><th>الحالة</th><th>رقم التقصير</th><th>الإجراء المطلوب</th><th>الخصم</th></tr>
+      ${M.rows.map(r=>r.none?`<tr><td>${r.e.n}</td><td colspan="7" class="sub">لم يُسجَّل تقرير لهذا اليوم</td></tr>`:`<tr><td>${r.e.n}<div class="sub">${r.e.role}</div></td><td class="num">${P(r.c.taskPct)}</td><td class="num">${r.c.outPct===null?"—":P(r.c.outPct)}</td><td class="num"><b>${P(r.c.overall)}</b></td><td><span class="pill ${r.c.status==="ok"?"good":r.c.status==="short"?"bad":"mute"}">${stText[r.c.status]}</span></td><td class="num">${r.idx||"—"}</td><td>${r.idx?actionFor(r.idx)+(r.d.acted?" (تم التنفيذ)":" (لم يُنفَّذ بعد)"):"—"}</td><td class="num">${r.ded?(r.ded.amount?money(r.ded.amount):"نصف يوم"):"—"}</td></tr>`).join("")}</table></div></div>`;
+    if(sh.length){h+=`<div><h2>3. تفاصيل التقصير</h2>`+sh.map(r=>{
+      const miss=r.e.tasks.filter(t=>(r.d.tasks[t.id]?.s||0)<1);
+      const lowk=r.c.ks.filter(x=>x.a<1);
+      return `<div style="margin-bottom:14px"><h3>${r.e.n} — الالتزام ${P(r.c.overall)}</h3><ul>
+        <li><b>مهام لم تُنفَّذ بالكامل (${miss.length}):</b> ${miss.map(t=>{const x=r.d.tasks[t.id]||{};return esc(t.t)+(x.s===0.5?" (جزئي)":"")+(x.note?` — ${esc(x.note)}`:"")}).join("؛ ")||"—"}</li>
+        ${lowk.length?`<li><b>مؤشرات دون المستهدف:</b> ${lowk.map(x=>`${esc(x.k.l)}: ${f(x.v,1)} من ${f(x.tg,1)} (${P(x.a)})`).join("؛ ")}</li>`:""}
+        ${r.d.notes?`<li><b>ملاحظات المدير:</b> ${esc(r.d.notes)}</li>`:""}</ul></div>`}).join("")+`</div>`}
+    const esc2=sh.filter(r=>r.idx>=4);
+    h+=`<div><h2>${sh.length?4:3}. المطلوب من الإدارة</h2>${esc2.length?`<ul>${esc2.map(r=>`<li><b>${r.e.n}:</b> تقصير رقم ${r.idx}، ويُرجى اتخاذ القرار (فصل أو تنزيل مرتب أو تنزيل درجة وظيفية).</li>`).join("")}</ul>`:`<div class="sub">لا توجد حالات تستوجب قرار الإدارة اليوم. الإجراءات الجارية يتولاها المدير المباشر.</div>`}</div>`;
+  }else{
+    const tot=M.rows.reduce((s,r)=>s+r.dedAmount,0);
+    h+=`<div><h2>1. الملخص</h2><ul><li>أيام تقصير في الشهر: <b class="num">${M.rows.reduce((s,r)=>s+r.shorts.length,0)}</b> على ${M.rows.filter(r=>r.shorts.length).length} موظفين.</li>${tot?`<li>إجمالي الخصم المقترح: <b class="num">${money(tot)}</b>.</li>`:""}</ul></div>
+    <div><h2>2. ملخص كل موظف</h2><div class="tw"><table><tr><th>الموظف</th><th>أيام مسجّلة</th><th>متوسط الالتزام</th><th>أيام التقصير</th><th>أعلى رقم تقصير</th><th>الإجراء</th><th>الخصم</th></tr>
+    ${M.rows.map(r=>`<tr><td>${r.e.n}<div class="sub">${r.e.role}</div></td><td class="num">${r.live}${r.absent?` (+${r.absent} غياب)`:""}</td><td class="num">${r.avg===null?"—":"<b>"+P(r.avg)+"</b>"}</td><td class="num">${r.shorts.length}</td><td class="num">${r.idx||"—"}</td><td>${r.idx?actionFor(r.idx):"—"}</td><td class="num">${r.shorts.length?(r.noSal?f(r.dedDays,2)+" يوم":money(r.dedAmount)):"—"}</td></tr>`).join("")}</table></div></div>`;
+    const withS=M.rows.filter(r=>r.shorts.length);
+    h+=`<div><h2>3. أيام التقصير</h2>${withS.length?withS.map(r=>`<h3>${r.e.n}</h3><ul>${r.shorts.map(x=>`<li><span class="num">${x.d.date}</span> — الالتزام ${P(x.c.overall)}${x.d.notes?` — ${esc(x.d.notes)}`:""}</li>`).join("")}</ul>`).join(""):`<div class="sub">لا توجد أيام تقصير.</div>`}</div>`;
+    const up=M.rows.filter(r=>r.idx>=4);
+    h+=`<div><h2>4. المطلوب من الإدارة</h2>${up.length?`<ul>${up.map(r=>`<li><b>${r.e.n}:</b> تكرار التقصير (${r.idx} مرات خلال 90 يومًا)، ويُرجى اتخاذ القرار.</li>`).join("")}</ul>`:`<div class="sub">لا توجد حالات تستوجب قرار الإدارة.</div>`}</div>`;
+  }
+  return h;
+}
+function repText(M){
+  const L=[];const line=()=>L.push("");
+  L.push(`تقرير متابعة أداء الموظفين — فرع ${BI[M.br].n}`);L.push(`${M.title}: ${M.period}`);L.push(`المدير: ${BI[M.br].m}`);line();
+  if(M.type==="day"){
+    const rec=M.rows.filter(r=>!r.none);
+    L.push("الملخص");L.push(`- سُجِّل ${rec.length} من ${M.rows.length} موظفين · ملتزم ${rec.filter(r=>r.c.status==="ok").length} · تقصير ${rec.filter(r=>r.c.status==="short").length} · غياب ${rec.filter(r=>r.c.status==="absent").length}`);line();
+    M.rows.forEach(r=>{
+      if(r.none){L.push(`* ${r.e.n} (${r.e.role}): لم يُسجَّل تقرير`);return}
+      L.push(`* ${r.e.n} (${r.e.role}): الالتزام ${P(r.c.overall)} [الخطة ${P(r.c.taskPct)}${r.c.outPct!==null?` · المؤشرات ${P(r.c.outPct)}`:""}] — ${stText[r.c.status]}`);
+      if(r.c.status==="short"){
+        L.push(`   تقصير رقم ${r.idx}: ${actionFor(r.idx)} ${r.d.acted?"(تم التنفيذ)":"(لم يُنفَّذ بعد)"}`);
+        L.push(`   الخصم المقترح: ${r.ded.amount?money(r.ded.amount):(r.ded.frac===0.5?"نصف يوم":f(r.ded.frac,2)+" يوم")}`);
+        const miss=r.e.tasks.filter(t=>(r.d.tasks[t.id]?.s||0)<1).map(t=>t.t+((r.d.tasks[t.id]?.s===0.5)?" (جزئي)":"")+(r.d.tasks[t.id]?.note?` — ${r.d.tasks[t.id].note}`:""));
+        if(miss.length)L.push(`   مهام لم تُنفَّذ: ${miss.join("؛ ")}`);
+        const lk=r.c.ks.filter(x=>x.a<1);if(lk.length)L.push(`   مؤشرات دون المستهدف: ${lk.map(x=>`${x.k.l} ${f(x.v,1)}/${f(x.tg,1)}`).join("؛ ")}`);
+        if(r.d.notes)L.push(`   ملاحظات المدير: ${r.d.notes}`);
+      }});
+    line();const up=rec.filter(r=>r.c.status==="short"&&r.idx>=4);
+    L.push("المطلوب من الإدارة");L.push(up.length?up.map(r=>`- ${r.e.n}: تقصير رقم ${r.idx} — يُرجى اتخاذ القرار (فصل أو تنزيل مرتب أو تنزيل درجة)`).join("\n"):"- لا توجد حالات تستوجب قرار الإدارة اليوم.");
+  }else{
+    M.rows.forEach(r=>{L.push(`* ${r.e.n} (${r.e.role}): أيام مسجلة ${r.live}${r.absent?` (+${r.absent} غياب)`:""} · متوسط الالتزام ${r.avg===null?"—":P(r.avg)} · أيام التقصير ${r.shorts.length}`);
+      if(r.shorts.length){L.push(`   تواريخ التقصير: ${r.shorts.map(x=>x.d.date+" ("+P(x.c.overall)+")").join("، ")}`);L.push(`   الإجراء: ${actionFor(r.idx)} · الخصم: ${r.noSal?f(r.dedDays,2)+" يوم":money(r.dedAmount)}`)}});
+    line();const up=M.rows.filter(r=>r.idx>=4);
+    L.push("المطلوب من الإدارة");L.push(up.length?up.map(r=>`- ${r.e.n}: تكرار التقصير (${r.idx}) — يُرجى اتخاذ القرار`).join("\n"):"- لا توجد حالات تستوجب قرار الإدارة.");
+  }
+  return L.join("\n");
+}
+function renderRep(){$("#rDayWrap").hidden=$("#rType").value!=="day";$("#rMonthWrap").hidden=$("#rType").value!=="month";if(!($("#rDate").value||$("#rMonth").value))return;$("#report").innerHTML=repHTML(repModel())}
+
+/* ---------- الإعدادات ---------- */
+function renderSet(){
+  const c=cfg();$("#sThr").value=c.thr;$("#sFrac").value=c.frac;$("#sDiv").value=c.div;
+  $("#sEmp").innerHTML=`<tr><th>الموظف</th><th>المرتب الشهري (ج.م)</th><th>تقصيرات سابقة (آخر 90 يومًا قبل بدء التسجيل هنا)</th></tr>`+EMP.map(e=>`<tr><td>${e.n}<div class="sub">${e.role}</div></td><td><input type="number" data-sal="${e.id}" value="${c.emps?.[e.id]?.salary??""}"></td><td><input type="number" min="0" data-prior="${e.id}" value="${c.emps?.[e.id]?.prior??0}"></td></tr>`).join("");
+  const groups=[["مبيعات (أحمد · باسل · إبراهيم)",["adel","bassel","ibrahim"],SALES_K],["الصيانة (إسماعيل)",["ismail"],MAINT_K],["الحسابات والمخزن (عمرو)",["amr"],ACC_K],["خدمة العملاء (يوسف)",["yousef"],CS_K],["الموديريتورز (زينب · ريم)",["zainab","reem"],MOD_K]];
+  $("#sKpi").innerHTML=groups.map(([t,ids,ks])=>`<tr><th colspan="${ids.length+1}" style="background:var(--soft)">${t}</th></tr><tr><th>المؤشر</th>${ids.map(i=>`<th>${E[i].n}</th>`).join("")}</tr>`+ks.map(k=>`<tr><td>${k.l}${k.low?` <span class="sub">(الأقل أفضل)</span>`:""}</td>${ids.map(i=>`<td><input type="number" step="any" data-tg="${i}|${k.key}" value="${target(i,k)}"></td>`).join("")}</tr>`).join("")).join("");
+}
+function onSet(){
+  const upd=()=>{persistSettings();};
+  $("#vSet").addEventListener("input",ev=>{const t=ev.target;const c=cfg();c.emps=c.emps||{};c.targets=c.targets||{};
+    if(t.id==="sThr")c.thr=+t.value;else if(t.id==="sFrac")c.frac=+t.value;else if(t.id==="sDiv")c.div=+t.value;
+    else if(t.dataset.sal){(c.emps[t.dataset.sal]=c.emps[t.dataset.sal]||{}).salary=t.value===""?"":+t.value}
+    else if(t.dataset.prior){(c.emps[t.dataset.prior]=c.emps[t.dataset.prior]||{}).prior=+t.value}
+    else if(t.dataset.tg){const[i,k]=t.dataset.tg.split("|");(c.targets[i]=c.targets[i]||{})[k]=t.value===""?"":+t.value}
+    else return;
+    setSave("جارٍ الحفظ…");clearTimeout(upd.t);upd.t=setTimeout(upd,600)});
+}
+
+/* ---------- تشغيل ---------- */
+async function init(){
+  sel.date=todayStr();$("#date").value=sel.date;$("#rDate").value=sel.date;$("#rMonth").value=sel.date.slice(0,7);
+  try{const cl=window.claude;if(cl&&cl.use)db=await cl.use("db")}catch(e){db=null}
+  if(db){
+    await new Promise(res=>{let first=true;
+      db.collection("days").onSnapshot(snap=>{const d={};snap.docs.forEach(x=>{const v=x.data();if(v)d[x.id]=v});
+        if(!dirty)S.days=d;else Object.assign(S.days,d,{[dkey(cur.date,cur.emp)]:S.days[dkey(cur.date,cur.emp)]});
+        if(first){first=false;res()}else{renderEmps();if(cur&&!dirty)refreshResult();if(!$("#vRep").hidden)renderRep()}},()=>{if(first){first=false;res()}});
+      db.doc("settings/main").onSnapshot(s=>{if(s.exists)S.settings=Object.assign(structuredClone(DEF),s.data());if(!first&&!$("#vSet").hidden){}},()=>{});
+      setTimeout(()=>{if(first){first=false;res()}},4000)});
+  }else{
+    const st=lsGet();if(st){S=Object.assign(S,st);S.settings=Object.assign(structuredClone(DEF),S.settings)}
+    const b=$("#banner");b.hidden=false;b.textContent="الحفظ المشترك غير متاح في هذا العرض، فالبيانات تُحفظ على هذا المتصفح فقط. افتح الصفحة من حسابك لتبقى البيانات محفوظة.";
+  }
+  extraInit();
+  await new Promise(r=>setTimeout(r,300));
+  loadCur();renderEmps();renderForm();onDay();onSet();
+  $$(".tab").forEach(b=>b.addEventListener("click",async()=>{await flush();showTab(b.dataset.tab)}));
+  ["rBr","rType","rDate","rMonth"].forEach(i=>$("#"+i).addEventListener("change",renderRep));
+  $("#copyBtn").addEventListener("click",async()=>{const txt=repText(repModel());
+    try{await navigator.clipboard.writeText(txt);$("#copyMsg").textContent="تم النسخ"}catch(e){const w=document.createElement("textarea");w.value=txt;w.style.cssText="position:fixed;inset:20% 10% auto;width:80%;height:50%;z-index:30";document.body.appendChild(w);w.select();$("#copyMsg").textContent="حدّد النص وانسخه يدويًا، ثم اضغط خارج المربع لإغلاقه";w.addEventListener("blur",()=>w.remove())}});
+  $("#dlBtn").addEventListener("click",async()=>{const M=repModel();const txt="﻿"+repText(M);
+    try{const dl=await window.claude.use("downloads");if(!dl)throw 0;await dl.save({filename:`تقرير-${BI[M.br].n}-${M.type==="day"?$("#rDate").value:$("#rMonth").value}.txt`,data:txt});$("#copyMsg").textContent="تم الحفظ"}catch(e){$("#copyMsg").textContent="التنزيل غير متاح هنا، استخدم «نسخ التقرير نصًا»."}});
+  const b=$("#themeBtn"),r=document.documentElement;let dark=matchMedia("(prefers-color-scheme: dark)").matches;
+  const setT=()=>{r.setAttribute("data-theme",dark?"dark":"light");b.textContent=dark?"الوضع الفاتح":"الوضع الليلي"};b.addEventListener("click",()=>{dark=!dark;setT()});setT();
+}
+/* ===== مراجعة الجودة · التنبيهات · المنصات · الأخطاء ===== */
+const CATS=[
+ {k:"late",l:"تأخر في الرد",why:"غالبًا ضغط محادثات أو غياب ترتيب أولويات أو عدم متابعة الـ Inbox بشكل دوري.",fix:"تذكير بمعيار الرد (≤15 دقيقة) ومراجعة ترتيب أولويات الرسائل.",train:"تدريب على إدارة الـ Inbox وترتيب الأولويات (Chatwoot / واتساب)."},
+ {k:"info",l:"معلومة خاطئة (سعر / مواصفات / ضمان)",why:"نقص معرفة بالمنتج أو عدم الرجوع لقائمة المتاح وOdoo قبل الرد.",fix:"تصحيح المعلومة مع العميل فورًا، والرجوع للقائمة المرجعية قبل أي رد.",train:"اختبار قصير في المواصفات والأسعار وسياسة الضمان."},
+ {k:"tone",l:"أسلوب / نبرة التعامل",why:"ضغط، أو غياب قوالب رد مهنية، أو عدم الاستماع لاحتياج العميل.",fix:"مراجعة المحادثة أو المكالمة مع الموظف وتصحيح الصياغة بمثال صحيح.",train:"جلسة Role-play على التعامل مع العميل المتردد أو الغاضب."},
+ {k:"follow",l:"عدم متابعة العميل",why:"غياب تاريخ متابعة في السجل أو عدم الالتزام بقائمة المتابعات اليومية.",fix:"تسجيل موعد متابعة لكل عميل والتأكد منه نهاية اليوم.",train:"تدريب على سجل العملاء: المرحلة والإجراء القادم وتاريخ المتابعة."},
+ {k:"log",l:"تسجيل ناقص / غير دقيق",why:"تسجيل مجمّع آخر اليوم بدل التسجيل الفوري.",fix:"استكمال الأسطر الناقصة قبل نهاية الشيفت.",train:"تدريب على التسجيل الفوري ومعايير جودة البيانات."},
+ {k:"script",l:"عدم اتباع خطوات التأهيل / البيع",why:"عدم استيعاب أسئلة التأهيل أو تخطي خطوة في مسار البيع.",fix:"مراجعة المحادثة خطوة بخطوة مع الموظف ثم إعادة المحاولة.",train:"تدريب على أسئلة التأهيل الثلاثة والتوصية وإغلاق الصفقة."},
+ {k:"lost",l:"صفقة ضائعة",why:"اعتراض لم يُعالج، أو عدم عرض بديل، أو تأخر في الرد.",fix:"توثيق سبب الضياع ومحاولة إعادة التواصل مع العميل.",train:"Coaching على معالجة اعتراض السعر."},
+ {k:"policy",l:"مخالفة سياسة / إجراء",why:"عدم الإلمام بالإجراءات (ضمان، استرجاع، فاتورة).",fix:"توضيح السياسة كتابيًا وأخذ تأكيد بالفهم من الموظف.",train:"مراجعة دليل السياسات والإجراءات."},
+ {k:"hlc",l:"Hotline: عميل لم يتم التواصل معه",why:"مكالمة فائتة أو مسجلة في الهوت لاين لم تُتابَع، غالبًا لعدم مراجعة قائمة المكالمات في نهاية الشيفت.",fix:"التواصل مع العميل فورًا (اتصال ثم Chatwoot) وتسجيل ذلك في شيت الهوت لاين.",train:"تدريب على مراجعة قائمة الهوت لاين وإغلاق كل مكالمة قبل نهاية اليوم."},
+ {k:"hlf",l:"Hotline: لم يتم تحديث Feedback للعميل",why:"إغلاق المكالمة بدون كتابة نتيجتها أو رد العميل في الشيت.",fix:"استكمال خانة Feedback لكل عميل الآن مع تفاصيل ما دار في المكالمة.",train:"تدريب على كتابة Feedback واضح (ماذا قال العميل، ما الاعتراض، ما المطلوب)."},
+ {k:"hln",l:"Hotline: لم يُسجَّل Next action / Next action date",why:"عدم تحديد الخطوة التالية وموعدها فيضيع العميل من المتابعة.",fix:"تسجيل الخطوة التالية وتاريخها لكل عميل فورًا ومراجعتها في بداية اليوم التالي.",train:"تدريب على تحديد Next action محدد وتاريخ واقعي لكل عميل."},
+ {k:"hls",l:"Hotline: لم يُسجَّل Status للعميل",why:"عدم تحديث مرحلة العميل فتتشوه تقارير المتابعة.",fix:"تحديث Status لكل عميل الآن وفق المراحل المعتمدة.",train:"مراجعة معاني الـ Status ومتى يتغير كل منها."},
+ {k:"other",l:"أخرى",why:"تُحدَّد بعد مناقشة الموظف.",fix:"يُحدَّد حسب الحالة.",train:"يُحدَّد حسب الحالة."}];
+const CM=Object.fromEntries(CATS.map(c=>[c.k,c]));
+const REPACT="تكرر الغلط: تحذير شفهي ثانٍ ثم خطة تحسين أداء لمدة أسبوع بمتابعة يومية، ورفع الحالة للإدارة عند التكرار الثالث.";
+const PL=[
+ {id:"cw",n:"Chatwoot",per:1,log:"رقم الشات",items:["تمت مراجعة كل محادثات اليوم"],ov:{yousef:["تم التواصل مع كل العملاء على Chatwoot","تم تحديث Feedback","تم تحديث Status","تم تحديث Next action"]}},
+ {id:"hl",n:"Hotline",per:1,log:"اسم العميل / رقم المكالمة",cats:["hlc","hlf","hln","hls","other"],ov:{yousef:["تم التواصل مع كل المكالمات (خدمة العملاء)","تم تحديث Feedback","تم تحديث Status","تم تحديث Next action"]},items:["تم التواصل مع كل المكالمات","تم التواصل معهم من خلال Chatwoot","تم تحديث العميل في شيت الهوت لاين: Name","تحديث Next action date","تحديث Shopify Order Number","تحديث Status","تحديث Feedback"],f:["مكالمات فائتة","تم الرد عليها"]},
+ {id:"cl",n:"Call Log",per:1,log:"العميل / رقم المكالمة",items:["Call Log محدّث","العميل متسمّي","تم تسجيل المكالمة"]},
+ {id:"mc",n:"ManyChat",per:1,log:"اسم العميل",items:["تمت مراجعة كل المحادثات"]},
+ {id:"mp",n:"Marketplace",per:1,tri:1,items:["عمل الإعلانات","رد على العملاء","نشر في الجروبات","رد على كومنتات الجروبات"]},
+ {id:"wa",n:"WhatsApp",per:1,items:["تم الرد على كل الرسائل","تم عمل Labels","تم عمل الاستوري","Catalog مُحدَّث","تم عمل Follow-up"]},
+ {id:"sh",n:"Shopify (الموقع والمنتجات)",items:["الموقع يعمل","الأسعار والمخزون مطابقان لـ Odoo","لا منتج مباع ظاهر","الصور والوصف سليمة","الطلبات الجديدة معالجة"],f:["منتجات بها خطأ","طلبات غير معالجة"]}];
+const PLN=Object.fromEntries(PL.map(p=>[p.id,p.n]));
+const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const blankQ=br=>({id:"",date:todayStr(),emp:inBr(br)[0].id,chat:"",cust:"",img:"",rec:"",cat:"late",what:"",plan:"",act1:"",actRep:"",reply:"",listened:false,done:false});
+const Q={},pl={br:"maadi",date:null};
+const revs=br=>Object.values(S.reviews||{}).filter(r=>!r.del&&E[r.emp]&&(!br||E[r.emp].br===br)).sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:(b.ts||0)-(a.ts||0));
+const repN=r=>Object.values(S.reviews).filter(x=>!x.del&&x.emp===r.emp&&x.cat===r.cat&&(x.date<r.date||(x.date===r.date&&(x.ts||0)<=(r.ts||0)))).length;
+const gap=(a,b)=>Math.round((new Date(b+"T00:00:00Z")-new Date(a+"T00:00:00Z"))/864e5);
+const opts=(a,v)=>a.map(([k,l])=>`<option value="${k}"${k===v?" selected":""}>${esc(l)}</option>`).join("");
+const lnk=u=>/^https?:\/\//i.test(u)?`<a href="${esc(u)}" target="_blank" rel="noopener">فتح التسجيل</a>`:esc(u);
+async function pPut(col,doc,key){S[col][key]=doc;
+  if(db){try{await db.doc(col+"/"+key).set(JSON.parse(JSON.stringify(doc)));setSave("تم الحفظ")}catch(e){setSave("تعذّر الحفظ")}}
+  else{lsPut();setSave("حُفظ على هذا المتصفح")}}
+function shrink(file){return new Promise(res=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{let w=im.width,h=im.height;const m=900;if(Math.max(w,h)>m){const s=m/Math.max(w,h);w=Math.round(w*s);h=Math.round(h*s)}
+  const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(im,0,0,w,h);let q=.6,u=c.toDataURL("image/jpeg",q);while(u.length>170000&&q>.25){q-=.1;u=c.toDataURL("image/jpeg",q)}res(u)};im.onerror=()=>res("");im.src=r.result};r.readAsDataURL(file)})}
+
+/* ---------- صفحة المراجعة (لكل فرع) ---------- */
+function renderQ(br){
+  if(!Q[br])Q[br]=blankQ(br);const d=Q[br],el=$("#"+(br==="maadi"?"vQm":"vQo"));
+  const ta=(f,t)=>`<label class="f" style="flex:1 1 280px">${t}<textarea data-f="${f}">${esc(d[f])}</textarea></label>`;
+  const today=todayStr();
+  const list=revs(br).map(r=>{const n=repN(r),e=E[r.emp],age=gap(r.date,today),act=n>=2?(r.actRep||REPACT):(r.act1||CM[r.cat].fix);
+    return `<div class="task"><div class="th"><div class="t"><b>${e.n}</b><span class="tm num">${r.date}</span><span class="pill mute">${CM[r.cat].l}</span>${r.src?`<span class="pill mute">${PLN[r.src]}</span>`:""}<span class="pill ${n>=2?"bad":"warn"}">المرة ${n}</span></div>
+      <div class="row"><button class="btn small" type="button" data-act="edit" data-id="${r.id}">تعديل</button><button class="btn small" type="button" data-act="del" data-id="${r.id}">حذف</button></div></div>
+      <div class="tb"><div><span class="k">رقم الشات</span><span class="num">${esc(r.chat)||"—"}</span></div><div><span class="k">رقم العميل</span><span class="num">${esc(r.cust)||"—"}</span></div><div><span class="k">المكالمة المسجلة</span>${r.rec?lnk(r.rec):"—"}</div></div>
+      ${r.img?`<img class="thumb" src="${r.img}" alt="صورة الشات">`:""}${r.what?`<div><span class="k">ما حدث</span>${esc(r.what)}</div>`:""}
+      <div class="tb"><div><span class="k">خطة التطوير للموظف</span>${esc(r.plan||CM[r.cat].train)}</div><div><span class="k">${n>=2?"الأكشن (الغلط تكرر)":"الأكشن المطلوب"}</span>${esc(act)}</div>${n<2&&r.actRep?`<div><span class="k">الأكشن لو تكررت</span>${esc(r.actRep)}</div>`:""}</div>
+      ${r.reply?`<div class="sub"><b>رد الموظف:</b> ${esc(r.reply)}</div>`:""}${r.enote?`<div class="sub"><b>نوتس الموظف:</b> ${esc(r.enote)}</div>`:""}
+      <div class="tbar"><label class="chk"><input type="checkbox" data-tg="done" data-id="${r.id}" ${r.done?"checked":""}> تم تنفيذ الأكشن</label>${r.rec?`<label class="chk"><input type="checkbox" data-tg="listened" data-id="${r.id}" ${r.listened?"checked":""}> تم الاستماع للمكالمة</label>${!r.listened&&age>=3?`<span class="pill bad">متأخر ${age} أيام</span>`:""}`:""}</div></div>`}).join("");
+  el.innerHTML=`<div class="panel"><h2>${d.id?"تعديل مراجعة":"تسجيل مراجعة جديدة"} — فرع ${BI[br].n}</h2><div class="sub">المدير: ${BI[br].m} · سجّل كل شات أو مكالمة راجعتها وما يلزم مع الموظف.</div>
+    <div class="row" style="margin-top:10px"><label class="f">التاريخ<input type="date" data-f="date" value="${d.date}"></label>
+    <label class="f">الموظف<select data-f="emp">${opts(inBr(br).map(e=>[e.id,e.n]),d.emp)}</select></label>
+    <label class="f">نوع الغلط<select data-f="cat">${opts(CATS.map(c=>[c.k,c.l]),d.cat)}</select></label>
+    <label class="f">رقم الشات<input type="text" data-f="chat" value="${esc(d.chat)}"></label>
+    <label class="f">رقم العميل<input type="text" inputmode="tel" dir="ltr" data-f="cust" value="${esc(d.cust)}"></label>
+    <label class="f" style="flex:1 1 220px">المكالمة المسجلة (رابط أو رقم التسجيل)<input type="text" data-f="rec" value="${esc(d.rec)}" style="width:100%"></label></div>
+    <div class="row" style="margin-top:10px"><label class="f">صورة من الشات<input type="file" accept="image/*" data-img></label>${d.img?`<img class="thumb" src="${d.img}" alt="صورة الشات"><button class="btn small" type="button" data-act="rmimg">إزالة الصورة</button>`:""}</div>
+    <div class="row" style="margin-top:10px">${ta("what","ما حدث (وصف الغلط)")}${ta("plan","خطة التطوير / التدريب للموظف")}${ta("act1","الأكشن المطلوب الآن")}${ta("actRep","الأكشن لو تكررت المشكلة")}${ta("reply","رد الموظف على الغلط")}</div>
+    <div class="row" style="margin-top:10px"><label class="chk"><input type="checkbox" data-f="listened" ${d.listened?"checked":""}> تم الاستماع للمكالمة</label><label class="chk"><input type="checkbox" data-f="done" ${d.done?"checked":""}> تم تنفيذ الأكشن</label><span style="flex:1"></span>
+    <button class="btn" type="button" data-act="sug">اقتراح تلقائي حسب نوع الغلط</button>${d.id?`<button class="btn" type="button" data-act="new">إلغاء التعديل</button>`:""}<button class="btn primary" type="button" data-act="save">حفظ المراجعة</button></div><div class="sub" id="qmsg${br}" style="margin-top:6px"></div></div>
+    <div class="panel"><h2>المراجعات المسجلة <span class="sub num">(${revs(br).length})</span></h2><div class="rep" style="margin-top:10px">${list||`<div class="sub">لا توجد مراجعات بعد.</div>`}</div></div>`;
+}
+async function qIn(e,br){const t=e.target,d=Q[br];if(!d)return;
+  if(t.dataset.img!==undefined){if(e.type==="change"&&t.files[0]){const u=await shrink(t.files[0]);if(u){d.img=u;renderQ(br)}}return}
+  if(t.dataset.f){d[t.dataset.f]=t.type==="checkbox"?t.checked:t.value}
+  else if(t.dataset.tg&&e.type==="change"){const r=S.reviews[t.dataset.id];r[t.dataset.tg]=t.checked;await pPut("reviews",r,r.id);renderQ(br);badge()}}
+function qClick(e,br){const b=e.target.closest("[data-act]");if(!b)return;const a=b.dataset.act,d=Q[br];
+  if(a==="rmimg"){d.img="";renderQ(br)}
+  else if(a==="sug"){const c=CM[d.cat];d.plan=c.train;d.act1=c.fix;d.actRep=REPACT;renderQ(br)}
+  else if(a==="new"){Q[br]=blankQ(br);renderQ(br)}
+  else if(a==="edit"){Q[br]=structuredClone(S.reviews[b.dataset.id]);renderQ(br);scrollTo(0,0)}
+  else if(a==="del"){if(!b.dataset.armed){b.dataset.armed=1;b.textContent="تأكيد الحذف";return}const r=S.reviews[b.dataset.id];r.del=true;pPut("reviews",r,r.id).then(()=>{renderQ(br);badge()})}
+  else if(a==="save"){const m=$("#qmsg"+br);if(!(d.chat||d.cust||d.rec||d.what||d.img)){m.textContent="أدخل رقم الشات أو العميل أو المكالمة أو وصف الغلط على الأقل.";return}
+    const doc=Object.assign({},d,{id:d.id||newId(),ts:Date.now()});Q[br]=blankQ(br);pPut("reviews",doc,doc.id).then(()=>{renderQ(br);$("#qmsg"+br).textContent="تم حفظ المراجعة.";badge()})}}
+
+/* ---------- المنصات اليومية ---------- */
+const plUnits=br=>{const U=[];PL.forEach(p=>{if(p.per)inBr(br).filter(e=>!["ismail","amr"].includes(e.id)).forEach(e=>U.push({k:p.id+"_"+e.id,p:p.ov&&p.ov[e.id]?Object.assign({},p,{items:p.ov[e.id]}):p,e}));else U.push({k:p.id,p})});return U};
+const plDoc=()=>S.plats[pl.date+"_"+pl.br]||{date:pl.date,br:pl.br,u:{}};
+const plEnt=(p,e)=>p.log?revs().filter(r=>r.src===p.id&&r.emp===e.id&&r.date===pl.date):[];
+function uSt(p,u,ne){if(u&&u.bad)return["bad","فيه مشكلة"];if(p.tri&&u&&u.c&&u.c.some(v=>v===false))return["bad","لم يُنفِّذ"];
+  const all=p.items.every((_,i)=>u&&u.c&&u.c[i]);if(ne)return["warn",ne+" مشكلة مسجلة"];if(all)return["good","سليمة"];return(u&&u.c&&u.c.some(Boolean))?["warn","غير مكتملة"]:["mute","لم تُراجَع"]}
+const LG={};
+function lgHTML(p,e){const key=p.id+"_"+e.id,d=LG[key]=LG[key]||{cat:p.cats?p.cats[0]:"late",chat:"",what:"",plan:"",act1:"",actRep:"",reply:"",enote:""};
+  const L=plEnt(p,e).map(r=>{const n=repN(r);return `<div class="task"><div class="th"><div class="t"><b class="num">${esc(r.chat)||"—"}</b><span class="pill mute">${CM[r.cat].l}</span><span class="pill ${n>=2?"bad":"warn"}">المرة ${n}</span></div><div class="row"><label class="chk"><input type="checkbox" data-lgtg="${r.id}" ${r.done?"checked":""}> الأكشن نُفِّذ</label><button class="btn small" type="button" data-lgdel="${r.id}">حذف</button></div></div>
+    <div><span class="k">المشكلة</span>${esc(r.what)}</div><div class="tb"><div><span class="k">خطة التطوير</span>${esc(r.plan||CM[r.cat].train)}</div><div><span class="k">${n>=2?"الأكشن (المشكلة تكررت)":"الأكشن"}</span>${esc(n>=2?(r.actRep||REPACT):(r.act1||CM[r.cat].fix))}</div>${n<2&&r.actRep?`<div><span class="k">الأكشن لو تكررت</span>${esc(r.actRep)}</div>`:""}</div>
+    ${r.reply?`<div class="sub"><b>رد الموظف:</b> ${esc(r.reply)}</div>`:""}${r.enote?`<div class="sub"><b>نوتس الموظف بعد الشات:</b> ${esc(r.enote)}</div>`:""}</div>`}).join("");
+  const ta=(f,t)=>`<label class="f" style="flex:1 1 240px">${t}<textarea data-lk="${key}" data-lf="${f}">${esc(d[f])}</textarea></label>`;
+  const op=d.chat||d.what||d.plan||d.act1||d.actRep||d.reply||d.enote;
+  return `<div class="rep" style="margin-top:10px">${L}<details ${op?"open":""}><summary class="btn small" style="display:inline-block;cursor:pointer">+ تسجيل مشكلة</summary>
+    <div class="row" style="margin-top:8px"><label class="f">نوع المشكلة<select data-lk="${key}" data-lf="cat">${opts((p.cats?CATS.filter(c=>p.cats.includes(c.k)):CATS).map(c=>[c.k,c.l]),d.cat)}</select></label><label class="f" style="flex:1 1 200px">${p.log}<input type="text" style="width:100%" data-lk="${key}" data-lf="chat" value="${esc(d.chat)}"></label></div>
+    <div class="row" style="margin-top:8px">${ta("what","المشكلة")}${ta("plan","خطة التطوير")}${ta("act1","الأكشن")}${ta("actRep","الأكشن لو اتكررت")}${ta("reply","رد الموظف")}${ta("enote","نوتس الموظف (اللي كتبها بعد الشات)")}</div>
+    <div class="row" style="margin-top:8px"><button class="btn" type="button" data-lgsug="${key}">اقتراح حسب النوع</button><button class="btn primary" type="button" data-lgsave="${key}">حفظ</button></div></details></div>`}
+function renderPl(){const el=$("#vPl");pl.date=pl.date||todayStr();const doc=plDoc(),U=plUnits(pl.br),st=U.map(x=>uSt(x.p,doc.u[x.k],x.e?plEnt(x.p,x.e).length:0)[0]),c=k=>st.filter(s=>s===k).length;
+  const panels=U.map(({k,p,e})=>{const u=doc.u[k]||{c:[],n:[],note:"",bad:false},[cl,tx]=uSt(p,doc.u[k],e?plEnt(p,e).length:0);
+    const items=p.tri?p.items.map((t,i)=>{const v=u.c&&u.c[i];return `<div class="row" style="justify-content:space-between"><span>${t}</span><span class="seg"><button type="button" class="b1" data-tri="${k}|${i}|1" aria-pressed="${v===true}">نُفِّذ</button><button type="button" class="b0" data-tri="${k}|${i}|0" aria-pressed="${v===false}">لم يُنفَّذ</button></span></div>`}).join("")+p.items.map((t,i)=>u.c&&u.c[i]===false?`<div class="act"><b>كارت:</b> ${e.n} لم يُنفِّذ — ${t}</div>`:"").join(""):`<div class="tb">${p.items.map((t,i)=>`<label class="chk"><input type="checkbox" data-pk="${k}" data-i="${i}" ${u.c&&u.c[i]?"checked":""}> ${t}</label>`).join("")}</div>`;
+    return `<div class="panel"><div class="row" style="justify-content:space-between"><h3>${p.n}${e?` — ${e.n}`:""}</h3><span class="pill st ${cl}">${tx}</span></div>
+    <div class="rep" style="margin-top:8px;gap:8px">${items}</div>
+    <div class="row" style="margin-top:8px">${(p.f||[]).map((t,i)=>`<label class="f">${t}<input type="number" step="any" data-pk="${k}" data-n="${i}" value="${u.n&&u.n[i]!==undefined?u.n[i]:""}"></label>`).join("")}
+    <label class="f" style="flex:1 1 200px">ملاحظة<input type="text" style="width:100%" data-pk="${k}" data-note value="${esc(u.note||"")}"></label><label class="chk"><input type="checkbox" data-pk="${k}" data-bad ${u.bad?"checked":""}> فيه مشكلة</label></div>${p.log&&e?lgHTML(p,e):""}</div>`}).join("");
+  el.innerHTML=`<div class="panel"><div class="row"><h2>متابعة المنصات اليومية</h2><div class="seg">${[["maadi","المعادي"],["oct","أكتوبر"]].map(([b,t])=>`<button type="button" class="pbs" data-pb="${b}" aria-pressed="${pl.br===b}">${t}</button>`).join("")}</div><label class="f">التاريخ<input type="date" id="plDate" value="${pl.date}"></label></div>
+    <div class="row" style="margin-top:8px"><span class="pill good">سليمة ${c("good")}</span><span class="pill warn">تحتاج متابعة ${c("warn")}</span><span class="pill bad">مشاكل ${c("bad")}</span><span class="pill mute">لم تُراجَع ${c("mute")}</span></div></div>`+panels}
+function plChange(t){const k=t.dataset.pk;if(!k)return;const doc=plDoc(),key=doc.date+"_"+doc.br;S.plats[key]=doc;const u=doc.u[k]=doc.u[k]||{c:[],n:[],note:"",bad:false};
+  if(t.dataset.i!==undefined)u.c[+t.dataset.i]=t.checked;else if(t.dataset.n!==undefined)u.n[+t.dataset.n]=t.value;else if(t.dataset.bad!==undefined)u.bad=t.checked;else if(t.dataset.note!==undefined)u.note=t.value;
+  const ei=k.indexOf("_"),p=plUnits(pl.br).find(x=>x.k===k).p,e=ei>0?E[k.slice(ei+1)]:null,[c,tx]=uSt(p,u,e?plEnt(p,e).length:0),pe=t.closest(".panel").querySelector(".pill.st");pe.className="pill st "+c;pe.textContent=tx;
+  setSave("جارٍ الحفظ…");clearTimeout(pl.t);pl.t=setTimeout(()=>pPut("plats",doc,key).then(badge),600)}
+async function plClick(e){const T=e.target,b=T.closest("[data-pb]");if(b){pl.br=b.dataset.pb;renderPl();return}
+  const tr=T.closest("[data-tri]");if(tr){const[k,i,v]=tr.dataset.tri.split("|"),doc=plDoc(),key=doc.date+"_"+doc.br;S.plats[key]=doc;const u=doc.u[k]=doc.u[k]||{c:[],n:[],note:"",bad:false};u.c[+i]=u.c[+i]===(v==="1")?null:v==="1";await pPut("plats",doc,key);renderPl();badge();return}
+  const sg=T.closest("[data-lgsug]");if(sg){const d=LG[sg.dataset.lgsug],c=CM[d.cat];d.plan=c.train;d.act1=c.fix;d.actRep=REPACT;renderPl();return}
+  const sv=T.closest("[data-lgsave]");if(sv){const key=sv.dataset.lgsave,d=LG[key],ei=key.indexOf("_");if(!(d.chat||d.what))return;
+    const doc=Object.assign({},d,{id:newId(),ts:Date.now(),date:pl.date,emp:key.slice(ei+1),src:key.slice(0,ei),done:false,listened:false,cust:"",rec:"",img:""});delete LG[key];await pPut("reviews",doc,doc.id);renderPl();badge();return}
+  const dl=T.closest("[data-lgdel]");if(dl){const r=S.reviews[dl.dataset.lgdel];r.del=true;await pPut("reviews",r,r.id);renderPl();badge()}}
+
+/* ---------- التنبيهات ---------- */
+function alerts(D){const A=[],add=(sev,br,who,txt)=>A.push({sev,br,who,txt});
+  EMP.forEach(e=>{const doc=S.days[dkey(D,e.id)];
+    if(!doc){add("warn",e.br,e.n,"لم يُسجَّل تقرير هذا اليوم بعد.");return}
+    const c=calc(doc);if(c.status==="absent")return;
+    if(c.status==="short"){const i=shortIndex(e.id,D);add("bad",e.br,e.n,`تقصير ${P(c.overall)} — رقم ${i}: ${actionFor(i)}${doc.acted?"":" (الإجراء لم يُنفَّذ بعد)"}`);if(i>=4)add("bad",e.br,e.n,"تكرار التقصير يستوجب قرار الإدارة (فصل أو تنزيل مرتب أو تنزيل درجة).")}
+    e.tasks.forEach(t=>{const s=doc.tasks&&doc.tasks[t.id]?doc.tasks[t.id].s:undefined;if(s===0||s===0.5)add(s===0?"bad":"warn",e.br,e.n,`${t.t} (${s===0?"لم يُنفَّذ":"جزئي"}): ${t.act}`)});
+    c.ks.filter(x=>x.a<1).forEach(x=>add(x.a<.7?"warn":"mute",e.br,e.n,`${x.k.l}: ${f(x.v,1)} من المستهدف ${f(x.tg,1)}`));
+    const un=e.tasks.filter(t=>doc.tasks&&doc.tasks[t.id]&&doc.tasks[t.id].s===1&&!doc.tasks[t.id].rev).length;if(un)add("mute",e.br,e.n,`${un} مهمة منفّذة لم تُراجَع بعد.`)});
+  Object.values(S.days).forEach(d=>{if(E[d.emp]&&d.date<D&&d.date>addDays(D,-90)&&!d.acted&&calc(d).status==="short")add("bad",E[d.emp].br,E[d.emp].n,`إجراء تقصير يوم ${d.date} لم يُنفَّذ بعد.`)});
+  revs().forEach(r=>{const e=E[r.emp],n=repN(r),age=gap(r.date,D);
+    if(r.rec&&!r.listened){if(age>=3)add("bad",e.br,e.n,`مكالمة مسجلة بتاريخ ${r.date} لم يُستمع لها (مرّ ${age} أيام، والحد 3).`);else if(age>=1)add("warn",e.br,e.n,`مكالمة ${r.date} تحتاج استماعًا قبل ${3-age} يوم.`)}
+    if(!r.done)add(n>=2?"bad":"warn",e.br,e.n,`مراجعة ${r.date} (${CM[r.cat].l}): الأكشن لم يُنفَّذ${n>=2?` — الغلط تكرر (المرة ${n}): ${r.actRep||REPACT}`:""}`)});
+  ["maadi","oct"].forEach(br=>{const doc=S.plats[D+"_"+br];if(!doc||!Object.keys(doc.u).length){add("warn",br,"المنصات","لم تُسجَّل مراجعة المنصات اليومية.");return}
+    plUnits(br).forEach(({k,p,e})=>{const u=doc.u[k],[c,tx]=uSt(p,u),nm=p.n+(e?` — ${e.n}`:"");
+      if(p.tri&&u&&u.c)u.c.forEach((v,i)=>{if(v===false)add("bad",br,nm,`كارت: لم يُنفِّذ — ${p.items[i]}`)});
+      if(u&&u.bad)add("bad",br,nm,u.note||"مشكلة مسجلة.");else if(c!=="good"&&c!=="bad")add("warn",br,nm,tx==="لم تُراجَع"?"لم تُراجَع اليوم.":"المراجعة غير مكتملة.")})});
+  return A}
+function badge(){const b=$("#alBadge");if(!b)return;const n=alerts(todayStr()).filter(a=>a.sev!=="mute").length;b.hidden=!n;b.textContent=n}
+function renderAl(){const el=$("#vAl"),D=($("#alDate")&&$("#alDate").value)||todayStr(),B=($("#alBr")&&$("#alBr").value)||"all",A=alerts(D).filter(a=>B==="all"||a.br===B);
+  const grp=(s,t)=>{const x=A.filter(a=>a.sev===s);return x.length?`<div class="panel"><h2>${t} <span class="sub num">(${x.length})</span></h2><div class="rep" style="margin-top:10px;gap:6px">${x.map(a=>`<div class="act ${s==="warn"?"p":""}" ${s==="mute"?'style="background:var(--soft)"':""}><b>${esc(a.who)}</b> <span class="sub">· ${BI[a.br].n}</span> — ${esc(a.txt)}</div>`).join("")}</div></div>`:""};
+  el.innerHTML=`<div class="panel"><div class="row"><h2>التنبيهات</h2><label class="f">التاريخ<input type="date" id="alDate" value="${D}"></label><label class="f">الفرع<select id="alBr">${opts([["all","الكل"],["maadi","المعادي"],["oct","أكتوبر"]],B)}</select></label></div>
+    <div class="sub" style="margin-top:6px">تجمع تنبيهات الداش بورد المكتوبة، والمكالمات التي لم يُستمع لها بعد 3 أيام، والأكشن غير المنفّذ، والمنصات.</div></div>`+(A.length?grp("bad","عاجل")+grp("warn","يحتاج متابعة")+grp("mute","للعلم"):`<div class="panel"><div class="callout good">لا توجد تنبيهات.</div></div>`);badge()}
+
+/* ---------- الأخطاء والتحليل ---------- */
+function renderEr(){const el=$("#vEr"),B=($("#erBr")&&$("#erBr").value)||"maadi";
+  const cards=EMP.filter(e=>B==="all"||e.br===B).map(e=>{const R=revs().filter(r=>r.emp===e.id),cnt={};R.forEach(r=>cnt[r.cat]=(cnt[r.cat]||0)+1);const mx=Math.max(1,...Object.values(cnt));
+    const rows=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([k,n])=>{const c=CM[k];return `<div class="kpi"><div class="top"><b>${c.l}</b><span class="num">${n}${n>=2?` <span class="pill bad">متكرر</span>`:""}</span></div><div class="bar ${n>=2?"bad":"warn"}"><i style="width:${n/mx*100}%"></i></div><div class="sub"><b>التحليل:</b> ${c.why}</div><div class="sub"><b>الأكشن المناسب:</b> ${n>=2?REPACT:c.fix}</div><div class="sub"><b>التدريب:</b> ${c.train}</div></div>`}).join("");
+    const items=R.map(r=>{const n=repN(r);return `<div class="task"><div class="th"><div class="t"><span class="tm num">${r.date}</span><b>${CM[r.cat].l}</b>${r.src?`<span class="pill mute">${PLN[r.src]}</span>`:""}<span class="pill ${n>=2?"bad":"warn"}">المرة ${n}</span></div><span class="pill ${r.done?"good":"mute"}">${r.done?"الأكشن نُفِّذ":"الأكشن لم يُنفَّذ"}</span></div>${r.what?`<div>${esc(r.what)}</div>`:""}${r.enote?`<div class="sub"><b>نوتس الموظف:</b> ${esc(r.enote)}</div>`:""}<div class="act ${n>=2?"":"p"}"><b>الأكشن:</b> ${esc(n>=2?(r.actRep||REPACT):(r.act1||CM[r.cat].fix))}</div><label class="f">رد الموظف على الغلط<textarea data-rep="${r.id}" placeholder="اكتب ما قاله الموظف">${esc(r.reply||"")}</textarea></label></div>`}).join("");
+    return `<div class="panel"><div class="row" style="justify-content:space-between"><h2>${e.n} <span class="sub">· ${e.role} · ${BI[e.br].n}</span></h2><span class="pill ${R.length?(R.length>=3?"bad":"warn"):"good"}">${R.length} غلط</span></div>${R.length?`<div class="kpis" style="margin-top:10px">${rows}</div><div class="rep" style="margin-top:12px">${items}</div>`:`<div class="sub" style="margin-top:6px">لا أخطاء مسجلة.</div>`}</div>`}).join("");
+  el.innerHTML=`<div class="panel"><div class="row"><h2>أخطاء الموظفين وتحليلها</h2><label class="f">الفرع<select id="erBr">${opts([["maadi","المعادي"],["oct","أكتوبر"],["all","الكل"]],B)}</select></label></div><div class="sub" style="margin-top:6px">مأخوذة من صفحتي المراجعة. يتحول الأكشن المقترح إلى نسخة «التكرار» عند تكرار نفس الغلط لنفس الموظف.</div></div>`+cards}
+
+/* ---------- التقرير الأسبوعي ---------- */
+const wkStart=d=>{const w=new Date(d+"T00:00:00Z").getUTCDay();return addDays(d,-((w+1)%7))};
+const wkLbl=d=>new Date(d+"T12:00:00Z").toLocaleDateString("ar-EG-u-nu-latn",{weekday:"long",day:"numeric",month:"numeric",timeZone:"UTC"});
+const dayNotes=(x,e)=>{const a=[];if(x.d.notes)a.push(x.d.notes);e.tasks.forEach(t=>{const n=x.d.tasks[t.id]&&x.d.tasks[t.id].note;if(n)a.push(t.t+": "+n)});return a};
+const rvAct=r=>repN(r)>=2?(r.actRep||REPACT):(r.act1||CM[r.cat].fix);
+function wkModel(){const s=wkStart($("#wkDate").value||todayStr()),B=$("#wkBr").value,days=[0,1,2,3,4,5,6].map(i=>addDays(s,i)),en=days[6];
+  return{s,en,rows:EMP.filter(e=>B==="all"||e.br===B).map(e=>{
+    const ds=days.map(dt=>{const d=S.days[dkey(dt,e.id)];if(!d)return{dt,none:1};const c=calc(d);return{dt,d,c,idx:c.status==="short"?shortIndex(e.id,dt):0}});
+    const live=ds.filter(x=>x.c&&x.c.status!=="absent"),avg=live.length?live.reduce((a,x)=>a+x.c.overall,0)/live.length:null,miss={};
+    live.forEach(x=>e.tasks.forEach(t=>{if(((x.d.tasks[t.id]||{}).s||0)<1)miss[t.t]=(miss[t.t]||0)+1}));
+    return{e,ds,live:live.length,absent:ds.filter(x=>x.c&&x.c.status==="absent").length,shorts:ds.filter(x=>x.c&&x.c.status==="short"),avg,top:Object.entries(miss).sort((a,b)=>b[1]-a[1]).slice(0,3),rv:revs().filter(r=>r.emp===e.id&&r.date>=s&&r.date<=en).reverse()}})}}
+function wkHTML(M){return M.rows.map(r=>{const e=r.e;
+  const trs=r.ds.map(x=>x.none?`<tr><td>${wkLbl(x.dt)}</td><td colspan="4" class="sub">لم يُسجَّل تقرير</td></tr>`:`<tr><td>${wkLbl(x.dt)}</td><td><span class="pill ${x.c.status==="ok"?"good":x.c.status==="short"?"bad":"mute"}">${stText[x.c.status]}</span></td><td class="num">${x.c.status==="absent"?"—":P(x.c.overall)}</td><td>${dayNotes(x,e).map(esc).join("<br>")||"—"}</td><td>${x.idx?esc(actionFor(x.idx))+(x.d.acted?" (تم التنفيذ)":" (لم يُنفَّذ)"):"—"}</td></tr>`).join("");
+  const rv=r.rv.map(v=>`<div class="task"><div class="th"><div class="t"><span class="tm num">${v.date}</span><b>${CM[v.cat].l}</b>${v.src?`<span class="pill mute">${PLN[v.src]}</span>`:""}<span class="pill ${repN(v)>=2?"bad":"warn"}">المرة ${repN(v)}</span></div><span class="pill ${v.done?"good":"mute"}">${v.done?"الأكشن نُفِّذ":"لم يُنفَّذ"}</span></div>${v.what?`<div>${esc(v.what)}</div>`:""}<div class="tb"><div><span class="k">خطة التطوير</span>${esc(v.plan||CM[v.cat].train)}</div><div><span class="k">الأكشن</span>${esc(rvAct(v))}</div></div>${v.reply?`<div class="sub"><b>رد الموظف:</b> ${esc(v.reply)}</div>`:""}${v.enote?`<div class="sub"><b>نوتس الموظف:</b> ${esc(v.enote)}</div>`:""}</div>`).join("");
+  return `<div class="panel"><div class="row" style="justify-content:space-between"><h2>${e.n} <span class="sub">· ${e.role} · ${BI[e.br].n}</span></h2><div class="row"><span class="pill ${r.avg===null?"mute":r.avg*100<cfg().thr?"bad":"good"}">متوسط الالتزام ${r.avg===null?"—":P(r.avg)}</span><span class="pill ${r.shorts.length?"bad":"good"}">تقصير ${r.shorts.length}</span><span class="pill mute">غياب ${r.absent}</span></div></div>
+   <div class="tw" style="margin-top:8px"><table><tr><th>اليوم</th><th>الحالة</th><th>الالتزام</th><th>ملاحظات اليوم</th><th>الإجراء</th></tr>${trs}</table></div>
+   ${r.top.length?`<div class="sub" style="margin-top:8px"><b>أكثر مهام لم تُنفَّذ:</b> ${r.top.map(([t,n])=>`${esc(t)} (${n} أيام)`).join("؛ ")}</div>`:""}
+   <h3 style="margin-top:12px">المراجعات والأكشن وخطة التطوير</h3><div class="rep" style="margin-top:8px">${rv||`<div class="sub">لا مراجعات هذا الأسبوع.</div>`}</div></div>`}).join("")}
+function wkText(M){const L=[`التقرير الأسبوعي — ${M.s} إلى ${M.en}`,""];
+  M.rows.forEach(r=>{const e=r.e;L.push(`* ${e.n} (${e.role} — ${BI[e.br].n}): متوسط الالتزام ${r.avg===null?"—":P(r.avg)} · تقصير ${r.shorts.length} · غياب ${r.absent}`);
+    r.ds.forEach(x=>{if(x.none)return;const n=dayNotes(x,e);if(n.length||x.idx)L.push(`   ${x.dt}: ${n.join(" | ")}${x.idx?` — الإجراء: ${actionFor(x.idx)}${x.d.acted?" (تم)":" (لم يُنفَّذ)"}`:""}`)});
+    if(r.top.length)L.push(`   أكثر مهام لم تُنفَّذ: ${r.top.map(([t,n])=>t+" ("+n+")").join("؛ ")}`);
+    r.rv.forEach(v=>L.push(`   مراجعة ${v.date} — ${CM[v.cat].l} (المرة ${repN(v)}): ${v.what||""} | خطة التطوير: ${v.plan||CM[v.cat].train} | الأكشن: ${rvAct(v)} ${v.done?"(نُفِّذ)":"(لم يُنفَّذ)"}${v.reply?" | رد الموظف: "+v.reply:""}`));L.push("")});
+  return L.join("\n")}
+function renderWk(){const el=$("#vWk"),D=($("#wkDate")&&$("#wkDate").value)||todayStr(),B=($("#wkBr")&&$("#wkBr").value)||"all";
+  el.innerHTML=`<div class="panel"><div class="row"><h2>التقرير الأسبوعي</h2><label class="f">أي يوم من الأسبوع<input type="date" id="wkDate" value="${D}"></label><label class="f">الفرع<select id="wkBr">${opts([["all","الفرعان"],["maadi","المعادي"],["oct","أكتوبر"]],B)}</select></label><span style="flex:1"></span><button class="btn" type="button" id="wkCopy">نسخ التقرير نصًا</button><button class="btn primary" type="button" id="wkDl">تنزيل ملف نصي</button></div>
+   <div class="sub" id="wkRange" style="margin-top:6px"></div><div class="sub" id="wkMsg"></div></div><div id="wkBody" class="rep"></div>`;
+  const M=wkModel();$("#wkRange").textContent=`الأسبوع من السبت ${M.s} إلى الجمعة ${M.en} · مبني على ملاحظات التقارير اليومية وصفحات المراجعة.`;$("#wkBody").innerHTML=wkHTML(M)}
+function wkInit(){const el=$("#vWk");el.addEventListener("change",e=>{if(e.target.id==="wkDate"||e.target.id==="wkBr")renderWk()});
+  el.addEventListener("click",async e=>{const id=e.target.id;if(id!=="wkCopy"&&id!=="wkDl")return;const txt=wkText(wkModel()),m=$("#wkMsg");
+    if(id==="wkCopy"){try{await navigator.clipboard.writeText(txt);m.textContent="تم النسخ"}catch(x){m.textContent="تعذّر النسخ، استخدم التنزيل."}}
+    else{try{const dl=await window.claude.use("downloads");if(!dl)throw 0;await dl.save({filename:`تقرير-اسبوعي-${wkModel().s}.txt`,data:"\ufeff"+txt});m.textContent="تم الحفظ"}catch(x){m.textContent="التنزيل غير متاح هنا، استخدم «نسخ التقرير نصًا»."}}})}
+
+/* ---------- ربط ---------- */
+const VIEWS={day:"vDay",rep:"vRep",qm:"vQm",qo:"vQo",al:"vAl",pl:"vPl",er:"vEr",wk:"vWk",set:"vSet"};
+function showTab(n){Object.entries(VIEWS).forEach(([k,id])=>{$("#"+id).hidden=k!==n});$$(".tab").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.tab===n)));
+  if(n==="rep")renderRep();if(n==="set")renderSet();if(n==="day"){renderEmps();if(cur)refreshResult()}
+  if(n==="qm")renderQ("maadi");if(n==="qo")renderQ("oct");if(n==="al")renderAl();if(n==="pl")renderPl();if(n==="er")renderEr();if(n==="wk")renderWk();badge()}
+function reExtra(){const a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))return;const v=($$("main:not([hidden])")[0]||{}).id;({vQm:()=>renderQ("maadi"),vQo:()=>renderQ("oct"),vAl:renderAl,vPl:renderPl,vEr:renderEr,vWk:renderWk})[v]?.();badge()}
+function extraInit(){S.reviews=S.reviews||{};S.plats=S.plats||{};
+  if(db)["reviews","plats"].forEach(c=>db.collection(c).onSnapshot(snap=>{const d={};snap.docs.forEach(x=>{const v=x.data();if(v)d[x.id]=v});S[c]=d;reExtra()},()=>{}));
+  [["#vQm","maadi"],["#vQo","oct"]].forEach(([s,br])=>{const el=$(s);["input","change"].forEach(t=>el.addEventListener(t,e=>qIn(e,br)));el.addEventListener("click",e=>qClick(e,br))});
+  const al=$("#vAl");al.addEventListener("change",renderAl);
+  const p=$("#vPl");["input","change"].forEach(t=>p.addEventListener(t,e=>{const T=e.target;
+    if(t==="change"&&T.dataset.lgtg){const r=S.reviews[T.dataset.lgtg];r.done=T.checked;pPut("reviews",r,r.id).then(()=>{renderPl();badge()});return}
+    if(T.id==="plDate"&&t==="change"){pl.date=T.value;renderPl()}else if(T.dataset.lk)LG[T.dataset.lk][T.dataset.lf]=T.value;else plChange(T)}));
+  p.addEventListener("click",plClick);
+  const er=$("#vEr");er.addEventListener("change",e=>{if(e.target.id==="erBr")renderEr()});
+  er.addEventListener("input",e=>{const id=e.target.dataset.rep;if(!id)return;const r=S.reviews[id];r.reply=e.target.value;setSave("جارٍ الحفظ…");clearTimeout(er.t);er.t=setTimeout(()=>pPut("reviews",r,id),600)});
+  wkInit();badge()}
+
+init();
+</script>
+
+</body></html>
